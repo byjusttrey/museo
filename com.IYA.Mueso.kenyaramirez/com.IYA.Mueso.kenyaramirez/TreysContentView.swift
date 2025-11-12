@@ -1,155 +1,71 @@
+//
+//  TreyContentView.swift
+//  com.IYA.Mueso.kenyaramirez
+//
+//  Created by Trey Jennings on 11/12/25.
+//
+
 import SwiftUI
 import PhotosUI
+import UIKit
+import AVKit
 import AVFoundation
-import AVFAudio          // iOS 17 AVAudioApplication
+import AVFAudio
 import LinkPresentation
 import UniformTypeIdentifiers
 
-// MARK: - Models
+// MARK: - Sheet Router
 
-struct MuseoFolder: Identifiable, Codable, Hashable {
-    let id: UUID
-    var name: String
-    var emoji: String
-    init(id: UUID = UUID(), name: String, emoji: String) {
-        self.id = id; self.name = name; self.emoji = emoji
-    }
-}
+enum ActiveSheet: Identifiable, Equatable {
+    case capture
+    case note
+    case link
+    case folders
+    case detail(BoardItem)
 
-enum ItemKind: String, Codable { case note, photo, video, audio, link }
-
-struct NoteStyle: Hashable, Codable {
-    var fontSize: CGFloat = 18
-    var alignment: TextAlignment = .center
-    var hexColor: String = "#111111"
-
-    private enum CodingKeys: String, CodingKey { case fontSize, alignment, hexColor }
-    private enum AlignKey: String, Codable { case leading, center, trailing }
-
-    init(fontSize: CGFloat = 18, alignment: TextAlignment = .center, hexColor: String = "#111111") {
-        self.fontSize = fontSize; self.alignment = alignment; self.hexColor = hexColor
-    }
-    init(from d: Decoder) throws {
-        let c = try d.container(keyedBy: CodingKeys.self)
-        fontSize = CGFloat(try c.decode(Double.self, forKey: .fontSize))
-        switch try c.decode(AlignKey.self, forKey: .alignment) {
-        case .leading: alignment = .leading
-        case .center:  alignment = .center
-        case .trailing:alignment = .trailing
-        }
-        hexColor = try c.decode(String.self, forKey: .hexColor)
-    }
-    func encode(to e: Encoder) throws {
-        var c = e.container(keyedBy: CodingKeys.self)
-        try c.encode(Double(fontSize), forKey: .fontSize)
-        let a: AlignKey = (alignment == .leading ? .leading : (alignment == .trailing ? .trailing : .center))
-        try c.encode(a, forKey: .alignment)
-        try c.encode(hexColor, forKey: .hexColor)
-    }
-}
-
-struct BoardItem: Identifiable, Codable, Hashable {
-    var id: UUID = UUID()
-    var kind: ItemKind
-    var text: String?               // note
-    var style: NoteStyle?           // note
-    var fileName: String?           // photo / video / audio
-    var urlString: String?          // link
-    var linkTitle: String?          // link
-    var linkThumb: String?          // link (saved image filename)
-    var date: Date = Date()
-    var frameAsset: String          // "frame-1"... "frame-4"
-    var folderID: UUID?             // project/folder
-    var tags: [String] = []
-}
-
-// MARK: - Store
-
-@MainActor
-final class AppStore: ObservableObject {
-    @Published var items: [BoardItem] = [] { didSet { save() } }
-    @Published var folders: [MuseoFolder] = [] { didSet { save() } }
-    @Published var selectedFolder: MuseoFolder? = nil { didSet { save() } }
-
-    private let key = "museo.store.v2"
-
-    private struct Snapshot: Codable {
-        var items: [BoardItem]
-        var folders: [MuseoFolder]
-        var selectedFolder: MuseoFolder?
-    }
-
-    init() { load(); seedIfEmpty() }
-
-    private func seedIfEmpty() {
-        if folders.isEmpty {
-            folders = [
-                MuseoFolder(name: "Ideas", emoji: "💡"),
-                MuseoFolder(name: "Photos", emoji: "📷"),
-                MuseoFolder(name: "Audio", emoji: "🎙️")
-            ]
+    var id: String {
+        switch self {
+        case .capture: return "capture"
+        case .note:    return "note"
+        case .link:    return "link"
+        case .folders: return "folders"
+        case .detail(let item): return "detail-\(item.id.uuidString)"
         }
     }
-
-    func load() {
-        guard let data = UserDefaults.standard.data(forKey: key),
-              let snap = try? JSONDecoder().decode(Snapshot.self, from: data) else { return }
-        items = snap.items; folders = snap.folders; selectedFolder = snap.selectedFolder
-    }
-
-    func save() {
-        let snap = Snapshot(items: items, folders: folders, selectedFolder: selectedFolder)
-        if let data = try? JSONEncoder().encode(snap) {
-            UserDefaults.standard.set(data, forKey: key)
-        }
-    }
-
-    // Files
-    func urlForNewFile(named name: String) -> URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent(name)
-    }
-    func image(for fileName: String?) -> UIImage? {
-        guard let fileName else { return nil }
-        let url = urlForNewFile(named: fileName)
-        return UIImage(contentsOfFile: url.path)
-    }
-
-    // Filtered view
-    var filteredItems: [BoardItem] {
-        guard let f = selectedFolder else { return items }
-        return items.filter { $0.folderID == f.id }
-    }
 }
 
-// MARK: - Single-screen app
+// MARK: - ContentView
 
-struct ContentView: View {
+struct TreysContentView: View {
     @StateObject private var store = AppStore()
 
-    @State private var showCapture = false
-    @State private var showNoteEditor = false
-    @State private var showLinkCapture = false
-    @State private var showFoldersSheet = false
+    // Single-sheet state
+    @State private var activeSheet: ActiveSheet? = nil
 
+    // Note state
     @State private var newNote = ""
     @State private var noteStyle = NoteStyle()
     @State private var noteTags: [String] = []
     @State private var noteFolder: MuseoFolder? = nil
 
+    // Link state
     @State private var linkURLString: String = ""
     @State private var linkTags: [String] = []
     @State private var linkFolder: MuseoFolder? = nil
     @State private var isFetchingLink = false
 
+    // Media pickers
     @State private var photoItem: PhotosPickerItem?
     @State private var videoItem: PhotosPickerItem?
 
-    // Audio
+    // Audio record
     @State private var recorder: AVAudioRecorder?
     @State private var isRecording = false
     @State private var audioTags: [String] = []
     @State private var audioFolder: MuseoFolder? = nil
+    @State private var recordingStartedAt: Date?
+    @State private var elapsed: TimeInterval = 0
+    @State private var ticker = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack {
@@ -173,6 +89,7 @@ struct ContentView: View {
                                     subtitleFor(item)
                                 }
                                 .padding(.horizontal, 20)
+                                .onTapGesture { activeSheet = .detail(item) }
                             }
                         }
                         .padding(.top, 6)
@@ -182,7 +99,8 @@ struct ContentView: View {
                 .padding(.top, 12)
             }
 
-            Button { showCapture = true } label: {
+            // Floating Quick Capture
+            Button { activeSheet = .capture } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(.white)
@@ -194,14 +112,46 @@ struct ContentView: View {
             .accessibilityLabel("Quick Capture")
             .frame(maxHeight: .infinity, alignment: .bottom)
             .padding(.bottom, 22)
+
+            // Recording banner
+            if isRecording {
+                HStack(spacing: 10) {
+                    Circle().fill(Color.red).frame(width: 10, height: 10)
+                        .overlay(Circle().stroke(.white, lineWidth: 1))
+                    Text("Recording \(formatted(elapsed))")
+                        .monospacedDigit().bold()
+                    Spacer()
+                    Button(role: .destructive) { stopRecording() } label: {
+                        Text("Stop")
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(Color.red.opacity(0.9), in: Capsule())
+                            .foregroundStyle(.white)
+                    }
+                }
+                .padding()
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(.bottom, 100)
+                .onReceive(ticker) { _ in
+                    if let start = recordingStartedAt { elapsed = Date().timeIntervalSince(start) }
+                }
+            }
         }
-        .sheet(isPresented: $showCapture) { captureSheet }
-        .sheet(isPresented: $showNoteEditor) { noteEditor }
-        .sheet(isPresented: $showLinkCapture) { linkCapture }
-        .sheet(isPresented: $showFoldersSheet) {
-            FoldersManagerView(store: store, isPresented: $showFoldersSheet)
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .capture: captureSheet
+            case .note:    noteEditor
+            case .link:    linkCapture
+            case .folders:     FoldersManagerView(
+                store: store,
+                isPresented: Binding(
+                    get: { activeSheet == .folders },
+                    set: { if !$0 { activeSheet = nil } }
+                ))
+            case .detail(let item): DetailView(item: item, store: store)
+            }
         }
     }
+
 
     // MARK: Header / Folders
 
@@ -212,7 +162,7 @@ struct ContentView: View {
                 Text("Your creative space").font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer()
-            Button { showFoldersSheet = true } label: {
+            Button { activeSheet = .folders } label: {
                 Image(systemName: "line.3.horizontal.decrease")
                     .font(.system(size: 20, weight: .semibold))
                     .padding(10)
@@ -250,6 +200,7 @@ struct ContentView: View {
             .padding(.horizontal, 16)
         }
     }
+    
 
     // MARK: Capture Sheet
 
@@ -260,7 +211,7 @@ struct ContentView: View {
                     Button {
                         noteFolder = store.selectedFolder
                         noteTags = []; newNote = ""; noteStyle = NoteStyle()
-                        showNoteEditor = true
+                        activeSheet = .note
                     } label: { captureRow(icon: "note.text", title: "Note") }
 
                     PhotosPicker(selection: $photoItem, matching: .images) {
@@ -268,7 +219,7 @@ struct ContentView: View {
                     }
                     .onChange(of: photoItem) { _, new in
                         Task { await handleSelectedPhoto(new, folder: store.selectedFolder, tags: []) }
-                        showCapture = false
+                        activeSheet = nil
                     }
 
                     PhotosPicker(selection: $videoItem, matching: .videos) {
@@ -276,7 +227,7 @@ struct ContentView: View {
                     }
                     .onChange(of: videoItem) { _, new in
                         Task { await handleSelectedVideo(new, folder: store.selectedFolder, tags: []) }
-                        showCapture = false
+                        activeSheet = nil
                     }
 
                     Button {
@@ -290,13 +241,17 @@ struct ContentView: View {
 
                     Button {
                         linkURLString = ""; linkTags = []; linkFolder = store.selectedFolder
-                        showLinkCapture = true
+                        activeSheet = .link
                     } label: { captureRow(icon: "link", title: "Link") }
                 }
             }
             .navigationTitle("Quick Capture")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Close") { showCapture = false } } }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Close") { activeSheet = nil }
+                }
+            }
         }
         .presentationDetents([.height(380), .medium, .large])
         .presentationDragIndicator(.visible)
@@ -379,11 +334,11 @@ struct ContentView: View {
             .padding()
             .navigationTitle("New Note")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { showNoteEditor = false } }
+                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { activeSheet = nil } }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
                         let text = newNote.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !text.isEmpty else { showNoteEditor = false; return }
+                        guard !text.isEmpty else { activeSheet = nil; return }
                         let item = BoardItem(
                             kind: .note, text: text, style: noteStyle,
                             fileName: nil, urlString: nil, linkTitle: nil, linkThumb: nil,
@@ -392,7 +347,7 @@ struct ContentView: View {
                         )
                         store.items.insert(item, at: 0)
                         newNote = ""; noteTags = []; noteFolder = nil
-                        showNoteEditor = false; showCapture = false
+                        activeSheet = nil
                     }.bold()
                 }
             }
@@ -424,7 +379,7 @@ struct ContentView: View {
             }
             .navigationTitle("Add Link")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { showLinkCapture = false } }
+                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { activeSheet = nil } }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") { Task { await saveLink() } }
                         .bold()
@@ -445,7 +400,7 @@ struct ContentView: View {
         do {
             let provider = LPMetadataProvider()
             let meta = try await provider.startFetchingMetadata(for: url)
-            title = meta.title
+            title = meta.title ?? url.host
 
             if let ip = meta.imageProvider,
                let data = await loadImageData(from: ip),
@@ -457,7 +412,7 @@ struct ContentView: View {
                 }
             }
         } catch {
-            // ignore; saving without preview is fine
+            title = title ?? url.host
         }
 
         let item = BoardItem(
@@ -470,7 +425,7 @@ struct ContentView: View {
 
         isFetchingLink = false
         linkURLString = ""; linkTags = []; linkFolder = nil
-        showLinkCapture = false; showCapture = false
+        activeSheet = nil
     }
 
     private func loadImageData(from provider: NSItemProvider) async -> Data? {
@@ -509,12 +464,11 @@ struct ContentView: View {
         videoItem = nil
     }
 
-    // MARK: Voice memo (iOS 17+ safe)
+    // MARK: Voice memo
 
     private func handleVoiceMemo() async {
         if isRecording {
             stopRecording()
-            showCapture = false
             return
         }
 
@@ -554,6 +508,8 @@ struct ContentView: View {
         recorder = try AVAudioRecorder(url: url, settings: settings)
         recorder?.record()
         isRecording = true
+        recordingStartedAt = Date()
+        elapsed = 0
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
             if self.isRecording { self.stopRecording() }
@@ -564,6 +520,8 @@ struct ContentView: View {
         guard let rec = recorder else { return }
         rec.stop()
         isRecording = false
+        recordingStartedAt = nil
+        elapsed = 0
         let fileName = rec.url.lastPathComponent
         let item = BoardItem(
             kind: .audio, text: nil, style: nil, fileName: fileName,
@@ -573,59 +531,6 @@ struct ContentView: View {
         )
         store.items.insert(item, at: 0)
         recorder = nil
-    }
-
-    // MARK: Folder manager
-
-    private var foldersManager: some View {
-        NavigationStack {
-            List {
-                Section("Folders") {
-                    ForEach(store.folders) { f in
-                        HStack {
-                            Text(f.emoji); Text(f.name); Spacer()
-                            if store.selectedFolder?.id == f.id {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture { store.selectedFolder = f }
-                        .contextMenu {
-                            Button("Set as Filter") { store.selectedFolder = f }
-                            Button("Rename") { renameFolder(f) }
-                            Button("Delete", role: .destructive) { deleteFolder(f) }
-                        }
-                    }
-                    Button { addFolder() } label: { Label("New Folder", systemImage: "folder.badge.plus") }
-                }
-                Section { Button("Show All Items") { store.selectedFolder = nil } }
-            }
-            .navigationTitle("Projects & Folders")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { showFoldersSheet = false } } }
-        }
-    }
-
-    private func addFolder() {
-        var base = "Folder"; var idx = 1
-        while store.folders.contains(where: { $0.name == base }) { idx += 1; base = "Folder \(idx)" }
-        store.folders.append(MuseoFolder(name: base, emoji: "📁"))
-    }
-    private func deleteFolder(_ f: MuseoFolder) {
-        store.items = store.items.map { var m = $0; if m.folderID == f.id { m.folderID = nil }; return m }
-        store.folders.removeAll { $0.id == f.id }
-        if store.selectedFolder?.id == f.id { store.selectedFolder = nil }
-    }
-    private func renameFolder(_ f: MuseoFolder) {
-        var tf: UITextField?
-        let alert = UIAlertController(title: "Rename Folder", message: nil, preferredStyle: .alert)
-        alert.addTextField { t in t.text = f.name; tf = t }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Save", style: .default, handler: { _ in
-            let new = tf?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            guard !new.isEmpty, let idx = store.folders.firstIndex(where: { $0.id == f.id }) else { return }
-            store.folders[idx].name = new
-        }))
-        UIApplication.shared.topMostController()?.present(alert, animated: true)
     }
 
     // MARK: Helpers
@@ -641,13 +546,26 @@ struct ContentView: View {
                 .multilineTextAlignment(item.style?.alignment ?? .center)
                 .foregroundStyle(Color.mz_hex(item.style?.hexColor ?? "#111111"))
                 .padding(8)
+
         case .photo:
             if let ui = store.image(for: item.fileName) { Image(uiImage: ui).resizable().scaledToFill() }
             else { Color.clear }
+
         case .video:
-            Image(systemName: "play.rectangle.fill").resizable().scaledToFit().padding(18)
+            if let url = storeURL(fileName: item.fileName) {
+                VideoPlayerView(url: url).frame(maxWidth: 200, maxHeight: 140).cornerRadius(10)
+            } else {
+                Image(systemName: "play.rectangle.fill").resizable().scaledToFit().padding(18)
+            }
+
         case .audio:
-            Image(systemName: "waveform").resizable().scaledToFit().padding(18)
+            if let url = storeURL(fileName: item.fileName) {
+                AudioPlayerBar(url: url)
+                    .frame(maxWidth: 220)
+            } else {
+                Image(systemName: "waveform").resizable().scaledToFit().padding(18)
+            }
+
         case .link:
             if let ui = store.image(for: item.linkThumb) { Image(uiImage: ui).resizable().scaledToFill() }
             else { Image(systemName: "link").resizable().scaledToFit().padding(18) }
@@ -685,118 +603,166 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 240)
     }
+
+    private func storeURL(fileName: String?) -> URL? {
+        guard let fileName else { return nil }
+        return store.urlForNewFile(named: fileName)
+    }
+
+    private func formatted(_ t: TimeInterval) -> String {
+        let s = Int(t)
+        return String(format: "%02d:%02d", s / 60, s % 60)
+    }
 }
 
-// MARK: - Frame Card
 
-struct FrameCard<Center: View>: View {
-    let frameAsset: String
-    @ViewBuilder var center: () -> Center
-    var title: () -> String
-    var subtitle: () -> String
+// MARK: - Detail View
+
+struct DetailView: View {
+    let item: BoardItem
+    @ObservedObject var store: AppStore
 
     var body: some View {
-        ZStack {
-            Image(frameAsset).resizable().scaledToFit()
-            VStack(spacing: 10) {
-                Text(title()).font(.headline)
-                let sub = subtitle()
-                if !sub.isEmpty {
-                    Text(sub).font(.subheadline).foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center).lineLimit(4).minimumScaleFactor(0.85)
-                        .padding(.horizontal, 16)
+        ScrollView {
+            VStack(spacing: 16) {
+                Text(titleFor(item)).font(.title2).bold()
+                contentFor(item)
+                if !subtitleFor(item).isEmpty {
+                    Text(subtitleFor(item))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
                 }
-                center().frame(maxWidth: 160, maxHeight: 120).clipped().cornerRadius(10)
+                if !item.tags.isEmpty {
+                    Wrap(item.tags) { tag in
+                        Text("#\(tag)")
+                            .font(.caption)
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .padding(.horizontal)
+                }
             }
-            .padding(.horizontal, 24)
+            .padding()
         }
-        .frame(maxWidth: 340)
-        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+        .navigationTitle("Item")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func contentFor(_ item: BoardItem) -> some View {
+        switch item.kind {
+        case .note:
+            Text(item.text ?? "")
+                .font(.system(size: item.style?.fontSize ?? 18))
+                .multilineTextAlignment(item.style?.alignment ?? .center)
+                .foregroundStyle(Color.mz_hex(item.style?.hexColor ?? "#111111"))
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .center)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+
+        case .photo:
+            if let ui = store.image(for: item.fileName) {
+                Image(uiImage: ui).resizable().scaledToFit().cornerRadius(12)
+            }
+
+        case .video:
+            if let url = store.urlForNewFile(named: item.fileName ?? "") as URL? {
+                VideoPlayerView(url: url).frame(height: 280).cornerRadius(12)
+            }
+
+        case .audio:
+            if let file = item.fileName {
+                let url = store.urlForNewFile(named: file)
+                AudioPlayerBar(url: url)
+            }
+
+        case .link:
+            if let u = item.urlString, let url = URL(string: u) {
+                Link(destination: url) {
+                    HStack {
+                        Image(systemName: "link.circle.fill")
+                        Text(item.linkTitle ?? url.host ?? u).lineLimit(2)
+                        Spacer(); Image(systemName: "arrow.up.right.square")
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            if let ui = store.image(for: item.linkThumb) {
+                Image(uiImage: ui).resizable().scaledToFit().cornerRadius(12)
+            }
+        }
+    }
+
+    private func titleFor(_ item: BoardItem) -> String {
+        switch item.kind {
+        case .note:  return "Note"
+        case .photo: return "Photo"
+        case .video: return "Video"
+        case .audio: return "Voice Memo"
+        case .link:  return item.linkTitle ?? "Link"
+        }
+    }
+
+    private func subtitleFor(_ item: BoardItem) -> String {
+        switch item.kind {
+        case .note:  return (item.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        case .photo: return "Captured image"
+        case .video: return "Saved video"
+        case .audio: return "Recorded audio"
+        case .link:
+            if let u = item.urlString, let host = URL(string: u)?.host { return host }
+            return item.urlString ?? ""
+        }
     }
 }
 
-// MARK: - Tag Editor & helpers
+// MARK: - Inline Players
 
-struct TagEditor: View {
-    @Binding var tags: [String]
-    @State private var newTag = ""
+struct VideoPlayerView: View {
+    let url: URL
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                TextField("Add a tag", text: $newTag, onCommit: addTag)
-                Button("Add", action: addTag)
-            }
-            Wrap(tags, spacing: 6) { tag in
-                HStack(spacing: 6) {
-                    Text(tag)
-                    Image(systemName: "xmark.circle.fill")
-                        .onTapGesture { tags.removeAll { $0 == tag } }
-                }
-                .font(.caption)
-                .padding(.horizontal, 10).padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
-            }
-        }
-    }
-    private func addTag() {
-        let t = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !t.isEmpty, !tags.contains(t) else { return }
-        tags.append(t); newTag = ""
+        VideoPlayer(player: AVPlayer(url: url))
     }
 }
 
-struct Wrap<Data: RandomAccessCollection, Content: View>: View where Data.Element: Hashable {
-    let data: Data; let spacing: CGFloat; let content: (Data.Element) -> Content
-    init(_ data: Data, spacing: CGFloat = 8, @ViewBuilder content: @escaping (Data.Element) -> Content) {
-        self.data = data; self.spacing = spacing; self.content = content
+final class SimpleAudioPlayer: NSObject, ObservableObject {
+    @Published var isPlaying = false
+    private var player: AVAudioPlayer?
+
+    func load(_ url: URL) {
+        player = try? AVAudioPlayer(contentsOf: url)
+        player?.prepareToPlay()
+        isPlaying = false
     }
+    func toggle() {
+        guard let p = player else { return }
+        if p.isPlaying { p.pause(); isPlaying = false } else { p.play(); isPlaying = true }
+    }
+}
+
+struct AudioPlayerBar: View {
+    let url: URL
+    @StateObject private var engine = SimpleAudioPlayer()
+
     var body: some View {
-        var width: CGFloat = 0; var height: CGFloat = 0
-        return GeometryReader { geo in
-            ZStack(alignment: .topLeading) {
-                ForEach(Array(data), id: \.self) { item in
-                    content(item)
-                        .padding(4)
-                        .alignmentGuide(.leading) { d in
-                            if (abs(width - d.width) > geo.size.width) { width = 0; height -= d.height + spacing }
-                            let result = width
-                            if item == data.last { width = 0 } else { width -= d.width + spacing }
-                            return result
-                        }
-                        .alignmentGuide(.top) { _ in
-                            let result = height
-                            if item == data.last { height = 0 }
-                            return result
-                        }
-                }
+        HStack(spacing: 12) {
+            Button(action: { engine.toggle() }) {
+                Image(systemName: engine.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                    .font(.system(size: 28, weight: .semibold))
             }
+            Text(url.lastPathComponent).lineLimit(1)
+            Spacer()
         }
-        .frame(height: max(32, CGFloat((Array(data).count / 4) + 1) * 32))
+        .padding()
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .onAppear { engine.load(url) }
     }
 }
 
-extension Color {
-    /// HEX helper with a unique name to avoid collisions.
-    static func mz_hex(_ hex: String) -> Color {
-        var s = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        if s.hasPrefix("#") { s.removeFirst() }
-        var v: UInt64 = 0; Scanner(string: s).scanHexInt64(&v)
-        return Color(
-            red: Double((v >> 16) & 0xFF) / 255.0,
-            green: Double((v >> 8) & 0xFF) / 255.0,
-            blue: Double(v & 0xFF) / 255.0
-        )
-    }
-}
 
-extension UIApplication {
-    func topMostController(base: UIViewController? = nil) -> UIViewController? {
-        let base = base ?? connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.rootViewController
-        if let nav = base as? UINavigationController { return topMostController(base: nav.visibleViewController) }
-        if let tab = base as? UITabBarController { return topMostController(base: tab.selectedViewController) }
-        if let presented = base?.presentedViewController { return topMostController(base: presented) }
-        return base
-    }
-}
+// MARK: - Preview
 
 #Preview { ContentView() }
