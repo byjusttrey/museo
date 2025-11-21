@@ -230,7 +230,7 @@ private struct GalleryView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                headerBar
+                
 
                 if store.folders.isEmpty {
                     emptyHint
@@ -261,29 +261,7 @@ private struct GalleryView: View {
         }
     }
 
-    // Top header bar
-    private var headerBar: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("museo")
-                    .font(.system(size: 28, weight: .semibold))
-                Text("Your creative gallery")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 6)
-        .background(.white.opacity(0.85))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .padding(.horizontal, 16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.35), lineWidth: 0.5)
-        )
-    }
+
 
     private var emptyHint: some View {
         VStack(spacing: 14) {
