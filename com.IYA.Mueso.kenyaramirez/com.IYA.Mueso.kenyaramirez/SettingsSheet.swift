@@ -12,7 +12,8 @@ import SwiftUI
 
 struct SettingsSheet: View {
     @EnvironmentObject var store: MuseoStore
-    @AppStorage("username") private var username: String = ""
+    @AppStorage("museoTheme") private var museoTheme: String = MuseoTheme.light.rawValue
+    @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
 
     var body: some View {
         NavigationStack {
@@ -20,33 +21,41 @@ struct SettingsSheet: View {
                 MuseoColors.background.ignoresSafeArea()
                 
                 Form {
-                    Section("Profile") {
-                        TextField("Username", text: $username)
-                            .font(MuseoFont.paragraph(16))
-                            .foregroundColor(MuseoColors.textPrimary)
-                    }
-
-                    Section("About") {
-                        Text("Museo – personal mind museum prototype.")
-                            .font(MuseoFont.paragraph(12))
-                            .foregroundColor(MuseoColors.textSecondary)
-                    }
-
-                // MARK: - Gallery Settings
-                Section("Gallery Settings") {
-                    NavigationLink("Wallpaper") {
-                        WallpaperSelectorView(
-                            selected: Binding(
-                                get: { store.galleryWallpaperName },
-                                set: { store.setGalleryWallpaper(name: $0) }
+                    // MARK: - Gallery Appearance
+                    Section("Gallery Appearance") {
+                        // Theme picker
+                        Picker("Theme", selection: $museoTheme) {
+                            ForEach(MuseoTheme.allCases) { theme in
+                                Text(theme.displayName)
+                                    .font(MuseoFont.paragraph(14))
+                                    .tag(theme.rawValue)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        // Wallpaper selector
+                        NavigationLink("Wallpaper") {
+                            WallpaperSelectorView(
+                                selected: Binding(
+                                    get: { store.galleryWallpaperName },
+                                    set: { store.setGalleryWallpaper(name: $0) }
+                                )
                             )
-                        )
+                        }
+                        
+                        // Background color picker
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Background Color")
+                                .font(MuseoFont.paragraph(14))
+                                .foregroundColor(MuseoColors.textSecondary)
+                            
+                            GalleryColorPicker(selectedColorKey: $galleryBackgroundColorKey)
+                        }
+                        .padding(.vertical, 8)
                     }
-                }
                 }
             }
             .navigationTitle("Settings")
-            .font(MuseoFont.header(20))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Done") {
@@ -96,7 +105,7 @@ struct WallpaperSelectorView: View {
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(selected == wallpaper ? Color.blue : .clear,
+                                    .stroke(selected == wallpaper ? MuseoColors.accent : .clear,
                                             lineWidth: 3)
                             )
                     }

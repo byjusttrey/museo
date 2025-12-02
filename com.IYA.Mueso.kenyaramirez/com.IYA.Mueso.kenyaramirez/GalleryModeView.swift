@@ -30,6 +30,8 @@ struct GalleryModeView: View {
             }
         }
     }
+    @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
+    
     private var galleryBackground: some View {
         Group {
             if let name = store.galleryWallpaperName {
@@ -37,7 +39,8 @@ struct GalleryModeView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                MuseoColors.background
+                // Use stored background color, defaulting to cream
+                (GalleryBackgroundColor(rawValue: galleryBackgroundColorKey) ?? .cream).color
             }
         }
     }

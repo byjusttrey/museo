@@ -44,9 +44,9 @@ struct TopBarView: View {
                     .padding(8)
             }
 
-            // Profile / settings
+            // Profile icon
             Button {
-                store.isShowingSettings = true
+                store.isShowingProfile = true
             } label: {
                 Image(systemName: "person.crop.circle")
                     .font(MuseoFont.bodyTitle(20))
@@ -54,15 +54,13 @@ struct TopBarView: View {
                     .padding(.trailing, 12)
             }
 
-            // Gallery edit cog (only meaningful in gallery mode)
+            // Settings cog
             Button {
-                if store.displayMode == .gallery {
-                    store.isShowingGalleryEdit = true
-                }
+                store.isShowingSettings = true
             } label: {
                 Image(systemName: "gearshape")
                     .font(MuseoFont.bodyTitle(18))
-                    .foregroundColor(store.displayMode == .gallery ? MuseoColors.textPrimary : MuseoColors.textSecondary)
+                    .foregroundColor(MuseoColors.textPrimary)
                     .padding(.trailing, 16)
             }
         }

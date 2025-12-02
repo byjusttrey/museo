@@ -33,6 +33,7 @@ final class MuseoStore: ObservableObject {
     // Sheet state
     @Published var isShowingQuickCapture = false
     @Published var isShowingSettings = false
+    @Published var isShowingProfile = false
     @Published var isShowingGalleryEdit = false
     @Published var editingArtifact: Artifact? = nil
     
