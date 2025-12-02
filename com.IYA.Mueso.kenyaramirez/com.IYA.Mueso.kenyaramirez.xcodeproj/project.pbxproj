@@ -16,6 +16,52 @@
 		26F21D822EDF9D0B00FDA95F /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D782EDF9D0B00FDA95F /* Roboto-Medium.ttf */; };
 		26F21D832EDF9D0B00FDA95F /* Roboto_Condensed-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D732EDF9D0B00FDA95F /* Roboto_Condensed-Italic.ttf */; };
 		26F21D842EDF9D0B00FDA95F /* Roboto-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D792EDF9D0B00FDA95F /* Roboto-SemiBoldItalic.ttf */; };
+		26F21DBF2EDFA51A00FDA95F /* Roboto_Condensed-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D892EDFA51A00FDA95F /* Roboto_Condensed-BoldItalic.ttf */; };
+		26F21DC02EDFA51A00FDA95F /* Roboto-Italic-VariableFont_wdth,wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB32EDFA51A00FDA95F /* Roboto-Italic-VariableFont_wdth,wght.ttf */; };
+		26F21DC22EDFA51A00FDA95F /* Roboto-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB92EDFA51A00FDA95F /* Roboto-SemiBold.ttf */; };
+		26F21DC32EDFA51A00FDA95F /* Roboto_SemiCondensed-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA22EDFA51A00FDA95F /* Roboto_SemiCondensed-LightItalic.ttf */; };
+		26F21DC42EDFA51A00FDA95F /* Roboto-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DAF2EDFA51A00FDA95F /* Roboto-ExtraBoldItalic.ttf */; };
+		26F21DC52EDFA51A00FDA95F /* Roboto_SemiCondensed-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA42EDFA51A00FDA95F /* Roboto_SemiCondensed-MediumItalic.ttf */; };
+		26F21DC72EDFA51A00FDA95F /* Roboto_SemiCondensed-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D992EDFA51A00FDA95F /* Roboto_SemiCondensed-BlackItalic.ttf */; };
+		26F21DC82EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9F2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLightItalic.ttf */; };
+		26F21DCA2EDFA51A00FDA95F /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DAB2EDFA51A00FDA95F /* Roboto-BlackItalic.ttf */; };
+		26F21DCB2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DBC2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf */; };
+		26F21DCC2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D8D2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLightItalic.ttf */; };
+		26F21DCE2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D8A2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBold.ttf */; };
+		26F21DCF2EDFA51A00FDA95F /* Roboto-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB12EDFA51A00FDA95F /* Roboto-ExtraLightItalic.ttf */; };
+		26F21DD02EDFA51A00FDA95F /* Roboto_Condensed-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D882EDFA51A00FDA95F /* Roboto_Condensed-Bold.ttf */; };
+		26F21DD12EDFA51A00FDA95F /* Roboto_Condensed-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D952EDFA51A00FDA95F /* Roboto_Condensed-SemiBoldItalic.ttf */; };
+		26F21DD22EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9E2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLight.ttf */; };
+		26F21DD32EDFA51A00FDA95F /* Roboto-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB72EDFA51A00FDA95F /* Roboto-MediumItalic.ttf */; };
+		26F21DD42EDFA51A00FDA95F /* Roboto_Condensed-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D8B2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBoldItalic.ttf */; };
+		26F21DD52EDFA51A00FDA95F /* Roboto_SemiCondensed-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA82EDFA51A00FDA95F /* Roboto_SemiCondensed-Thin.ttf */; };
+		26F21DD62EDFA51A00FDA95F /* Roboto_Condensed-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D8F2EDFA51A00FDA95F /* Roboto_Condensed-Light.ttf */; };
+		26F21DD82EDFA51A00FDA95F /* Roboto-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB22EDFA51A00FDA95F /* Roboto-Italic.ttf */; };
+		26F21DD92EDFA51A00FDA95F /* Roboto_Condensed-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D942EDFA51A00FDA95F /* Roboto_Condensed-SemiBold.ttf */; };
+		26F21DDA2EDFA51A00FDA95F /* Roboto_SemiCondensed-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA62EDFA51A00FDA95F /* Roboto_SemiCondensed-SemiBold.ttf */; };
+		26F21DDC2EDFA51A00FDA95F /* Roboto-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DAA2EDFA51A00FDA95F /* Roboto-Black.ttf */; };
+		26F21DDD2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D8C2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLight.ttf */; };
+		26F21DDE2EDFA51A00FDA95F /* Roboto_SemiCondensed-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA12EDFA51A00FDA95F /* Roboto_SemiCondensed-Light.ttf */; };
+		26F21DDF2EDFA51A00FDA95F /* Roboto_SemiCondensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA52EDFA51A00FDA95F /* Roboto_SemiCondensed-Regular.ttf */; };
+		26F21DE02EDFA51A00FDA95F /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB52EDFA51A00FDA95F /* Roboto-LightItalic.ttf */; };
+		26F21DE12EDFA51A00FDA95F /* Roboto_Condensed-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D912EDFA51A00FDA95F /* Roboto_Condensed-Medium.ttf */; };
+		26F21DE22EDFA51A00FDA95F /* Roboto_SemiCondensed-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA92EDFA51A00FDA95F /* Roboto_SemiCondensed-ThinItalic.ttf */; };
+		26F21DE52EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9C2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBold.ttf */; };
+		26F21DE62EDFA51A00FDA95F /* Roboto_SemiCondensed-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9A2EDFA51A00FDA95F /* Roboto_SemiCondensed-Bold.ttf */; };
+		26F21DE72EDFA51A00FDA95F /* Roboto-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB82EDFA51A00FDA95F /* Roboto-Regular.ttf */; };
+		26F21DE82EDFA51A00FDA95F /* Italiana-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D852EDFA51A00FDA95F /* Italiana-Regular.ttf */; };
+		26F21DE92EDFA51A00FDA95F /* Roboto_Condensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D932EDFA51A00FDA95F /* Roboto_Condensed-Regular.ttf */; };
+		26F21DEA2EDFA51A00FDA95F /* Roboto-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB02EDFA51A00FDA95F /* Roboto-ExtraLight.ttf */; };
+		26F21DEB2EDFA51A00FDA95F /* Roboto-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DB42EDFA51A00FDA95F /* Roboto-Light.ttf */; };
+		26F21DED2EDFA51A00FDA95F /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DBB2EDFA51A00FDA95F /* Roboto-Thin.ttf */; };
+		26F21DEE2EDFA51A00FDA95F /* Roboto_SemiCondensed-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9B2EDFA51A00FDA95F /* Roboto_SemiCondensed-BoldItalic.ttf */; };
+		26F21DEF2EDFA51A00FDA95F /* Roboto_SemiCondensed-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DA02EDFA51A00FDA95F /* Roboto_SemiCondensed-Italic.ttf */; };
+		26F21DF12EDFA51A00FDA95F /* Roboto_Condensed-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D872EDFA51A00FDA95F /* Roboto_Condensed-BlackItalic.ttf */; };
+		26F21DF22EDFA51A00FDA95F /* Roboto_Condensed-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D902EDFA51A00FDA95F /* Roboto_Condensed-LightItalic.ttf */; };
+		26F21DF32EDFA51A00FDA95F /* Roboto_Condensed-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D972EDFA51A00FDA95F /* Roboto_Condensed-ThinItalic.ttf */; };
+		26F21DF42EDFA51A00FDA95F /* Roboto-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DAE2EDFA51A00FDA95F /* Roboto-ExtraBold.ttf */; };
+		26F21DF52EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9D2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf */; };
+		26F21DF62EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D962EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf */; };
 		B28F20C82EDF4BAE00BB634F /* Roboto_Condensed-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B28F209C2EDF4BAE00BB634F /* Roboto_Condensed-MediumItalic.ttf */; };
 		B28F20FD2EDF4BAE00BB634F /* Roboto_SemiCondensed-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B28F20A22EDF4BAE00BB634F /* Roboto_SemiCondensed-Black.ttf */; };
 /* End PBXBuildFile section */
@@ -30,6 +76,52 @@
 		26F21D782EDF9D0B00FDA95F /* Roboto-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Medium.ttf"; sourceTree = "<group>"; };
 		26F21D792EDF9D0B00FDA95F /* Roboto-SemiBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		26F21D7A2EDF9D0B00FDA95F /* Roboto-VariableFont_wdth,wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-VariableFont_wdth,wght.ttf"; sourceTree = "<group>"; };
+		26F21D852EDFA51A00FDA95F /* Italiana-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Italiana-Regular.ttf"; sourceTree = "<group>"; };
+		26F21D872EDFA51A00FDA95F /* Roboto_Condensed-BlackItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-BlackItalic.ttf"; sourceTree = "<group>"; };
+		26F21D882EDFA51A00FDA95F /* Roboto_Condensed-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-Bold.ttf"; sourceTree = "<group>"; };
+		26F21D892EDFA51A00FDA95F /* Roboto_Condensed-BoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-BoldItalic.ttf"; sourceTree = "<group>"; };
+		26F21D8A2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-ExtraBold.ttf"; sourceTree = "<group>"; };
+		26F21D8B2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
+		26F21D8C2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLight.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-ExtraLight.ttf"; sourceTree = "<group>"; };
+		26F21D8D2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
+		26F21D8F2EDFA51A00FDA95F /* Roboto_Condensed-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-Light.ttf"; sourceTree = "<group>"; };
+		26F21D902EDFA51A00FDA95F /* Roboto_Condensed-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-LightItalic.ttf"; sourceTree = "<group>"; };
+		26F21D912EDFA51A00FDA95F /* Roboto_Condensed-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-Medium.ttf"; sourceTree = "<group>"; };
+		26F21D932EDFA51A00FDA95F /* Roboto_Condensed-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-Regular.ttf"; sourceTree = "<group>"; };
+		26F21D942EDFA51A00FDA95F /* Roboto_Condensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-SemiBold.ttf"; sourceTree = "<group>"; };
+		26F21D952EDFA51A00FDA95F /* Roboto_Condensed-SemiBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
+		26F21D962EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-Thin.ttf"; sourceTree = "<group>"; };
+		26F21D972EDFA51A00FDA95F /* Roboto_Condensed-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-ThinItalic.ttf"; sourceTree = "<group>"; };
+		26F21D992EDFA51A00FDA95F /* Roboto_SemiCondensed-BlackItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-BlackItalic.ttf"; sourceTree = "<group>"; };
+		26F21D9A2EDFA51A00FDA95F /* Roboto_SemiCondensed-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Bold.ttf"; sourceTree = "<group>"; };
+		26F21D9B2EDFA51A00FDA95F /* Roboto_SemiCondensed-BoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-BoldItalic.ttf"; sourceTree = "<group>"; };
+		26F21D9C2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-ExtraBold.ttf"; sourceTree = "<group>"; };
+		26F21D9D2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
+		26F21D9E2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLight.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-ExtraLight.ttf"; sourceTree = "<group>"; };
+		26F21D9F2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
+		26F21DA02EDFA51A00FDA95F /* Roboto_SemiCondensed-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Italic.ttf"; sourceTree = "<group>"; };
+		26F21DA12EDFA51A00FDA95F /* Roboto_SemiCondensed-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Light.ttf"; sourceTree = "<group>"; };
+		26F21DA22EDFA51A00FDA95F /* Roboto_SemiCondensed-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-LightItalic.ttf"; sourceTree = "<group>"; };
+		26F21DA42EDFA51A00FDA95F /* Roboto_SemiCondensed-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-MediumItalic.ttf"; sourceTree = "<group>"; };
+		26F21DA52EDFA51A00FDA95F /* Roboto_SemiCondensed-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Regular.ttf"; sourceTree = "<group>"; };
+		26F21DA62EDFA51A00FDA95F /* Roboto_SemiCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
+		26F21DA82EDFA51A00FDA95F /* Roboto_SemiCondensed-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Thin.ttf"; sourceTree = "<group>"; };
+		26F21DA92EDFA51A00FDA95F /* Roboto_SemiCondensed-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-ThinItalic.ttf"; sourceTree = "<group>"; };
+		26F21DAA2EDFA51A00FDA95F /* Roboto-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Black.ttf"; sourceTree = "<group>"; };
+		26F21DAB2EDFA51A00FDA95F /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
+		26F21DAE2EDFA51A00FDA95F /* Roboto-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-ExtraBold.ttf"; sourceTree = "<group>"; };
+		26F21DAF2EDFA51A00FDA95F /* Roboto-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
+		26F21DB02EDFA51A00FDA95F /* Roboto-ExtraLight.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-ExtraLight.ttf"; sourceTree = "<group>"; };
+		26F21DB12EDFA51A00FDA95F /* Roboto-ExtraLightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
+		26F21DB22EDFA51A00FDA95F /* Roboto-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Italic.ttf"; sourceTree = "<group>"; };
+		26F21DB32EDFA51A00FDA95F /* Roboto-Italic-VariableFont_wdth,wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Italic-VariableFont_wdth,wght.ttf"; sourceTree = "<group>"; };
+		26F21DB42EDFA51A00FDA95F /* Roboto-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Light.ttf"; sourceTree = "<group>"; };
+		26F21DB52EDFA51A00FDA95F /* Roboto-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-LightItalic.ttf"; sourceTree = "<group>"; };
+		26F21DB72EDFA51A00FDA95F /* Roboto-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-MediumItalic.ttf"; sourceTree = "<group>"; };
+		26F21DB82EDFA51A00FDA95F /* Roboto-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Regular.ttf"; sourceTree = "<group>"; };
+		26F21DB92EDFA51A00FDA95F /* Roboto-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-SemiBold.ttf"; sourceTree = "<group>"; };
+		26F21DBB2EDFA51A00FDA95F /* Roboto-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Thin.ttf"; sourceTree = "<group>"; };
+		26F21DBC2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-ThinItalic.ttf"; sourceTree = "<group>"; };
 		B253CD262EC41549001396C3 /* com.IYA.Mueso.kenyaramirez.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = com.IYA.Mueso.kenyaramirez.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B28F209C2EDF4BAE00BB634F /* Roboto_Condensed-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-MediumItalic.ttf"; sourceTree = "<group>"; };
 		B28F20A22EDF4BAE00BB634F /* Roboto_SemiCondensed-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Black.ttf"; sourceTree = "<group>"; };
@@ -85,6 +177,52 @@
 				26F21D782EDF9D0B00FDA95F /* Roboto-Medium.ttf */,
 				26F21D792EDF9D0B00FDA95F /* Roboto-SemiBoldItalic.ttf */,
 				26F21D7A2EDF9D0B00FDA95F /* Roboto-VariableFont_wdth,wght.ttf */,
+				26F21D852EDFA51A00FDA95F /* Italiana-Regular.ttf */,
+				26F21D872EDFA51A00FDA95F /* Roboto_Condensed-BlackItalic.ttf */,
+				26F21D882EDFA51A00FDA95F /* Roboto_Condensed-Bold.ttf */,
+				26F21D892EDFA51A00FDA95F /* Roboto_Condensed-BoldItalic.ttf */,
+				26F21D8A2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBold.ttf */,
+				26F21D8B2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBoldItalic.ttf */,
+				26F21D8C2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLight.ttf */,
+				26F21D8D2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLightItalic.ttf */,
+				26F21D8F2EDFA51A00FDA95F /* Roboto_Condensed-Light.ttf */,
+				26F21D902EDFA51A00FDA95F /* Roboto_Condensed-LightItalic.ttf */,
+				26F21D912EDFA51A00FDA95F /* Roboto_Condensed-Medium.ttf */,
+				26F21D932EDFA51A00FDA95F /* Roboto_Condensed-Regular.ttf */,
+				26F21D942EDFA51A00FDA95F /* Roboto_Condensed-SemiBold.ttf */,
+				26F21D952EDFA51A00FDA95F /* Roboto_Condensed-SemiBoldItalic.ttf */,
+				26F21D962EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf */,
+				26F21D972EDFA51A00FDA95F /* Roboto_Condensed-ThinItalic.ttf */,
+				26F21D992EDFA51A00FDA95F /* Roboto_SemiCondensed-BlackItalic.ttf */,
+				26F21D9A2EDFA51A00FDA95F /* Roboto_SemiCondensed-Bold.ttf */,
+				26F21D9B2EDFA51A00FDA95F /* Roboto_SemiCondensed-BoldItalic.ttf */,
+				26F21D9C2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBold.ttf */,
+				26F21D9D2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf */,
+				26F21D9E2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLight.ttf */,
+				26F21D9F2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLightItalic.ttf */,
+				26F21DA02EDFA51A00FDA95F /* Roboto_SemiCondensed-Italic.ttf */,
+				26F21DA12EDFA51A00FDA95F /* Roboto_SemiCondensed-Light.ttf */,
+				26F21DA22EDFA51A00FDA95F /* Roboto_SemiCondensed-LightItalic.ttf */,
+				26F21DA42EDFA51A00FDA95F /* Roboto_SemiCondensed-MediumItalic.ttf */,
+				26F21DA52EDFA51A00FDA95F /* Roboto_SemiCondensed-Regular.ttf */,
+				26F21DA62EDFA51A00FDA95F /* Roboto_SemiCondensed-SemiBold.ttf */,
+				26F21DA82EDFA51A00FDA95F /* Roboto_SemiCondensed-Thin.ttf */,
+				26F21DA92EDFA51A00FDA95F /* Roboto_SemiCondensed-ThinItalic.ttf */,
+				26F21DAA2EDFA51A00FDA95F /* Roboto-Black.ttf */,
+				26F21DAB2EDFA51A00FDA95F /* Roboto-BlackItalic.ttf */,
+				26F21DAE2EDFA51A00FDA95F /* Roboto-ExtraBold.ttf */,
+				26F21DAF2EDFA51A00FDA95F /* Roboto-ExtraBoldItalic.ttf */,
+				26F21DB02EDFA51A00FDA95F /* Roboto-ExtraLight.ttf */,
+				26F21DB12EDFA51A00FDA95F /* Roboto-ExtraLightItalic.ttf */,
+				26F21DB22EDFA51A00FDA95F /* Roboto-Italic.ttf */,
+				26F21DB32EDFA51A00FDA95F /* Roboto-Italic-VariableFont_wdth,wght.ttf */,
+				26F21DB42EDFA51A00FDA95F /* Roboto-Light.ttf */,
+				26F21DB52EDFA51A00FDA95F /* Roboto-LightItalic.ttf */,
+				26F21DB72EDFA51A00FDA95F /* Roboto-MediumItalic.ttf */,
+				26F21DB82EDFA51A00FDA95F /* Roboto-Regular.ttf */,
+				26F21DB92EDFA51A00FDA95F /* Roboto-SemiBold.ttf */,
+				26F21DBB2EDFA51A00FDA95F /* Roboto-Thin.ttf */,
+				26F21DBC2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -159,6 +297,52 @@
 				26F21D832EDF9D0B00FDA95F /* Roboto_Condensed-Italic.ttf in Resources */,
 				26F21D7C2EDF9D0B00FDA95F /* Roboto_SemiCondensed-SemiBoldItalic.ttf in Resources */,
 				26F21D7D2EDF9D0B00FDA95F /* Roboto_Condensed-Black.ttf in Resources */,
+				26F21DBF2EDFA51A00FDA95F /* Roboto_Condensed-BoldItalic.ttf in Resources */,
+				26F21DC02EDFA51A00FDA95F /* Roboto-Italic-VariableFont_wdth,wght.ttf in Resources */,
+				26F21DC22EDFA51A00FDA95F /* Roboto-SemiBold.ttf in Resources */,
+				26F21DC32EDFA51A00FDA95F /* Roboto_SemiCondensed-LightItalic.ttf in Resources */,
+				26F21DC42EDFA51A00FDA95F /* Roboto-ExtraBoldItalic.ttf in Resources */,
+				26F21DC52EDFA51A00FDA95F /* Roboto_SemiCondensed-MediumItalic.ttf in Resources */,
+				26F21DC72EDFA51A00FDA95F /* Roboto_SemiCondensed-BlackItalic.ttf in Resources */,
+				26F21DC82EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLightItalic.ttf in Resources */,
+				26F21DCA2EDFA51A00FDA95F /* Roboto-BlackItalic.ttf in Resources */,
+				26F21DCB2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf in Resources */,
+				26F21DCC2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLightItalic.ttf in Resources */,
+				26F21DCE2EDFA51A00FDA95F /* Roboto_Condensed-ExtraBold.ttf in Resources */,
+				26F21DCF2EDFA51A00FDA95F /* Roboto-ExtraLightItalic.ttf in Resources */,
+				26F21DD02EDFA51A00FDA95F /* Roboto_Condensed-Bold.ttf in Resources */,
+				26F21DD12EDFA51A00FDA95F /* Roboto_Condensed-SemiBoldItalic.ttf in Resources */,
+				26F21DD22EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraLight.ttf in Resources */,
+				26F21DD32EDFA51A00FDA95F /* Roboto-MediumItalic.ttf in Resources */,
+				26F21DD42EDFA51A00FDA95F /* Roboto_Condensed-ExtraBoldItalic.ttf in Resources */,
+				26F21DD52EDFA51A00FDA95F /* Roboto_SemiCondensed-Thin.ttf in Resources */,
+				26F21DD62EDFA51A00FDA95F /* Roboto_Condensed-Light.ttf in Resources */,
+				26F21DD82EDFA51A00FDA95F /* Roboto-Italic.ttf in Resources */,
+				26F21DD92EDFA51A00FDA95F /* Roboto_Condensed-SemiBold.ttf in Resources */,
+				26F21DDA2EDFA51A00FDA95F /* Roboto_SemiCondensed-SemiBold.ttf in Resources */,
+				26F21DDC2EDFA51A00FDA95F /* Roboto-Black.ttf in Resources */,
+				26F21DDD2EDFA51A00FDA95F /* Roboto_Condensed-ExtraLight.ttf in Resources */,
+				26F21DDE2EDFA51A00FDA95F /* Roboto_SemiCondensed-Light.ttf in Resources */,
+				26F21DDF2EDFA51A00FDA95F /* Roboto_SemiCondensed-Regular.ttf in Resources */,
+				26F21DE02EDFA51A00FDA95F /* Roboto-LightItalic.ttf in Resources */,
+				26F21DE12EDFA51A00FDA95F /* Roboto_Condensed-Medium.ttf in Resources */,
+				26F21DE22EDFA51A00FDA95F /* Roboto_SemiCondensed-ThinItalic.ttf in Resources */,
+				26F21DE52EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBold.ttf in Resources */,
+				26F21DE62EDFA51A00FDA95F /* Roboto_SemiCondensed-Bold.ttf in Resources */,
+				26F21DE72EDFA51A00FDA95F /* Roboto-Regular.ttf in Resources */,
+				26F21DE82EDFA51A00FDA95F /* Italiana-Regular.ttf in Resources */,
+				26F21DE92EDFA51A00FDA95F /* Roboto_Condensed-Regular.ttf in Resources */,
+				26F21DEA2EDFA51A00FDA95F /* Roboto-ExtraLight.ttf in Resources */,
+				26F21DEB2EDFA51A00FDA95F /* Roboto-Light.ttf in Resources */,
+				26F21DED2EDFA51A00FDA95F /* Roboto-Thin.ttf in Resources */,
+				26F21DEE2EDFA51A00FDA95F /* Roboto_SemiCondensed-BoldItalic.ttf in Resources */,
+				26F21DEF2EDFA51A00FDA95F /* Roboto_SemiCondensed-Italic.ttf in Resources */,
+				26F21DF12EDFA51A00FDA95F /* Roboto_Condensed-BlackItalic.ttf in Resources */,
+				26F21DF22EDFA51A00FDA95F /* Roboto_Condensed-LightItalic.ttf in Resources */,
+				26F21DF32EDFA51A00FDA95F /* Roboto_Condensed-ThinItalic.ttf in Resources */,
+				26F21DF42EDFA51A00FDA95F /* Roboto-ExtraBold.ttf in Resources */,
+				26F21DF52EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf in Resources */,
+				26F21DF62EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf in Resources */,
 				26F21D842EDF9D0B00FDA95F /* Roboto-SemiBoldItalic.ttf in Resources */,
 				26F21D812EDF9D0B00FDA95F /* Roboto-Bold.ttf in Resources */,
 				26F21D7E2EDF9D0B00FDA95F /* Roboto_SemiCondensed-Medium.ttf in Resources */,
