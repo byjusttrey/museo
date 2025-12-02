@@ -49,3 +49,8 @@ struct ContentView: View {
         .background(Color(red: 0.99, green: 0.96, blue: 0.89).ignoresSafeArea())
     }
 }
+#Preview {
+    ContentView()
+        .environmentObject(MuseoStore())
+}
+
