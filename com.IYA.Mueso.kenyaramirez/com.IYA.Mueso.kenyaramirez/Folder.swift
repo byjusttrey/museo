@@ -13,8 +13,8 @@ import SwiftUI
 
 enum FolderPriority: String, Codable, CaseIterable, Identifiable {
     case low = "!"
-    case medium = "!!"
-    case high = "!!!"
+    case medium = "!!!"
+    case high = "!!!!!"
     
     var id: String { rawValue }
     
