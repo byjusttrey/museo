@@ -19,7 +19,7 @@ struct MuseoLogoView: View {
             
             // Wordmark
             Text("museo")
-                .font(MuseoFont.header(36))
+                .font(MuseoFont.header(56))
                 .foregroundColor(MuseoColors.textPrimary)
         }
     }
