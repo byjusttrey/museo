@@ -11,20 +11,47 @@
 import Foundation
 import SwiftUI
 
+enum FolderPriority: String, Codable, CaseIterable, Identifiable {
+    case low = "!"
+    case medium = "!!"
+    case high = "!!!"
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .low: "Low"
+        case .medium: "Medium"
+        case .high: "High"
+        }
+    }
+    
+    var sortIndex: Int {
+        switch self {
+        case .low: return 1
+        case .medium: return 2
+        case .high: return 3
+        }
+    }
+}
+
 struct Folder: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
     var color: ColorData
     var wallpaperID: String?   // identifier for wallpaper choice
+    var priority: FolderPriority
 
     init(id: UUID = UUID(),
          name: String,
          color: Color = .orange,
-         wallpaperID: String? = nil) {
+         wallpaperID: String? = nil,
+         priority: FolderPriority = .low) {
         self.id = id
         self.name = name
         self.color = ColorData(color: color)
         self.wallpaperID = wallpaperID
+        self.priority = priority
     }
 }
 

@@ -117,9 +117,14 @@ final class MuseoStore: ObservableObject {
 
     // MARK: - Mutations
 
-    func addFolder(named name: String) {
-        let folder = Folder(name: name)
+    func addFolder(named name: String, priority: FolderPriority = .low) {
+        let folder = Folder(name: name, priority: priority)
         folders.append(folder)
+    }
+    
+    func updateFolderPriority(_ folder: Folder, to priority: FolderPriority) {
+        guard let idx = folders.firstIndex(where: { $0.id == folder.id }) else { return }
+        folders[idx].priority = priority
     }
 
     func addNoteArtifact(title: String,
@@ -171,6 +176,11 @@ final class MuseoStore: ObservableObject {
     func renameFolder(_ folder: Folder, to newName: String) {
         guard let idx = folders.firstIndex(where: { $0.id == folder.id }) else { return }
         folders[idx].name = newName
+    }
+    
+    func updateFolderColor(_ folder: Folder, to color: Color) {
+        guard let idx = folders.firstIndex(where: { $0.id == folder.id }) else { return }
+        folders[idx].color = ColorData(color: color)
     }
 
     func deleteFolder(_ folder: Folder) {

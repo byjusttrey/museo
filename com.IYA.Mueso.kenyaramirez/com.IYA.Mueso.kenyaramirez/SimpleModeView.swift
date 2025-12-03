@@ -6,17 +6,63 @@
 //
 
 import SwiftUI
+import UIKit
 
-enum SortOption: String, CaseIterable {
-    case name = "Name"
-    case itemCount = "Items"
+// MARK: - Folder Sort Option
+
+enum FolderSortOption: String, CaseIterable, Identifiable {
+    case az = "A–Z"
+    case za = "Z–A"
+    case type = "Type"
+    case priority = "Priority"
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        rawValue
+    }
 }
+
+// MARK: - Brand Color Palette
+
+enum FolderBrandColor: String, CaseIterable, Identifiable {
+    case cream
+    case accent
+    case accentSoft
+    case textSecondary
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .cream: "Cream"
+        case .accent: "Terracotta"
+        case .accentSoft: "Teal"
+        case .textSecondary: "Dusty Rose"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .cream:
+            return MuseoColors.background
+        case .accent:
+            return MuseoColors.accent
+        case .accentSoft:
+            return MuseoColors.accentSoft
+        case .textSecondary:
+            return MuseoColors.textSecondary
+        }
+    }
+}
+
+// MARK: - Simple Mode View
 
 struct SimpleModeView: View {
     @EnvironmentObject var store: MuseoStore
     
     @State private var isPresentingNewFolderSheet = false
-    @State private var sortOption: SortOption = .name
+    @State private var sortOption: FolderSortOption = .az
     
     private var filteredAndSortedFolders: [Folder] {
         var folders = store.folders
@@ -30,10 +76,16 @@ struct SimpleModeView: View {
         
         // Apply sorting
         switch sortOption {
-        case .name:
-            folders.sort { $0.name < $1.name }
-        case .itemCount:
-            folders.sort { store.artifacts(in: $0).count > store.artifacts(in: $1).count }
+        case .az:
+            folders.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .za:
+            folders.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+        case .type:
+            // Sort by first character/type - simple alphabetical grouping
+            folders.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .priority:
+            // Sort by priority: High (!!!) > Medium (!!) > Low (!)
+            folders.sort { $0.priority.sortIndex > $1.priority.sortIndex }
         }
         
         return folders
@@ -51,39 +103,62 @@ struct SimpleModeView: View {
                         .foregroundColor(MuseoColors.textPrimary)
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
-                    
-                    Text("Simple view")
-                        .font(MuseoFont.paragraph(14))
-                        .foregroundColor(MuseoColors.textSecondary)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 20)
                 }
                 
                 // Controls section
                 VStack(spacing: 12) {
-                    // Search field
-                    TextField("Search folders", text: $store.searchText)
-                        .font(MuseoFont.paragraph(16))
-                        .foregroundColor(MuseoColors.textPrimary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(MuseoColors.borderMuted, lineWidth: 1)
-                                )
-                        )
-                        .padding(.horizontal, 20)
-                    
-                    // Sort picker
-                    Picker("Sort", selection: $sortOption) {
-                        ForEach(SortOption.allCases, id: \.self) { option in
-                            Text(option.rawValue).tag(option)
+                    // Search field and Filter control
+                    HStack(spacing: 12) {
+                        // Search field
+                        TextField("Search folders", text: $store.searchText)
+                            .font(MuseoFont.paragraph(16))
+                            .foregroundColor(MuseoColors.textPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(MuseoColors.borderMuted, lineWidth: 1)
+                                    )
+                            )
+                        
+                        // Filter menu
+                        Menu {
+                            ForEach(FolderSortOption.allCases) { option in
+                                Button {
+                                    sortOption = option
+                                } label: {
+                                    HStack {
+                                        Text(option.displayName)
+                                        if sortOption == option {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "line.3.horizontal.decrease.circle")
+                                    .font(.system(size: 16))
+                                Text("Filter")
+                                    .font(MuseoFont.paragraph(14))
+                            }
+                            .foregroundColor(MuseoColors.textPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(MuseoColors.borderMuted, lineWidth: 1)
+                                    )
+                            )
                         }
                     }
-                    .pickerStyle(.segmented)
                     .padding(.horizontal, 20)
                 }
                 .padding(.bottom, 16)
@@ -146,7 +221,8 @@ struct SimpleModeView: View {
 struct FolderRowView: View {
     @EnvironmentObject var store: MuseoStore
     let folder: Folder
-
+    @State private var showingColorPicker = false
+    
     var body: some View {
         let itemCount = store.artifacts(in: folder).count
 
@@ -154,16 +230,27 @@ struct FolderRowView: View {
             store.activeFolderDetail = folder
         } label: {
             HStack(spacing: 12) {
-                // Folder icon/emoji
-                Image(systemName: "folder.fill")
-                    .foregroundColor(folder.color.swiftUIColor)
-                    .font(.system(size: 24))
+                // Folder icon with color - tappable for color change
+                Button {
+                    showingColorPicker.toggle()
+                } label: {
+                    Image(systemName: "folder.fill")
+                        .foregroundColor(folder.color.swiftUIColor)
+                        .font(.system(size: 24))
+                }
+                .buttonStyle(.plain)
                 
-                // Folder name and count
+                // Folder name, priority, and count
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(folder.name)
-                        .font(MuseoFont.bodyTitle(16))
-                        .foregroundColor(MuseoColors.textPrimary)
+                    HStack(spacing: 6) {
+                        Text(folder.name)
+                            .font(MuseoFont.bodyTitle(16))
+                            .foregroundColor(MuseoColors.textPrimary)
+                        
+                        Text(folder.priority.rawValue)
+                            .font(MuseoFont.paragraph(12))
+                            .foregroundColor(MuseoColors.textSecondary)
+                    }
                     
                     Text("\(itemCount) item\(itemCount == 1 ? "" : "s")")
                         .font(MuseoFont.paragraph(14))
@@ -185,6 +272,67 @@ struct FolderRowView: View {
             )
         }
         .buttonStyle(.plain)
+        .sheet(isPresented: $showingColorPicker) {
+            FolderColorPickerSheet(folder: folder)
+        }
+    }
+}
+
+// MARK: - Folder Color Picker Sheet
+
+struct FolderColorPickerSheet: View {
+    @EnvironmentObject var store: MuseoStore
+    @Environment(\.dismiss) private var dismiss
+    let folder: Folder
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                MuseoColors.background.ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    Text("Choose a color for \(folder.name)")
+                        .font(MuseoFont.bodyTitle(16))
+                        .foregroundColor(MuseoColors.textPrimary)
+                        .padding(.top, 24)
+                    
+                    HStack(spacing: 16) {
+                        ForEach(FolderBrandColor.allCases) { brandColor in
+                            Button {
+                                store.updateFolderColor(folder, to: brandColor.color)
+                                dismiss()
+                            } label: {
+                                VStack(spacing: 8) {
+                                    Circle()
+                                        .fill(brandColor.color)
+                                        .frame(width: 50, height: 50)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(MuseoColors.borderMuted, lineWidth: 2)
+                                        )
+                                    
+                                    Text(brandColor.displayName)
+                                        .font(MuseoFont.paragraph(12))
+                                        .foregroundColor(MuseoColors.textPrimary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+            }
+            .navigationTitle("Folder Color")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -195,6 +343,7 @@ struct NewFolderSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var name: String = ""
+    @State private var selectedPriority: FolderPriority = .low
 
     var body: some View {
         NavigationStack {
@@ -207,6 +356,20 @@ struct NewFolderSheet: View {
                             .font(MuseoFont.paragraph(16))
                             .foregroundColor(MuseoColors.textPrimary)
                     }
+                    
+                    Section("Priority") {
+                        Picker("Priority", selection: $selectedPriority) {
+                            ForEach(FolderPriority.allCases) { priority in
+                                HStack {
+                                    Text(priority.rawValue)
+                                    Text(priority.displayName)
+                                }
+                                .tag(priority)
+                            }
+                        }
+                        .font(MuseoFont.paragraph(16))
+                        .foregroundColor(MuseoColors.textPrimary)
+                    }
                 }
             }
             .navigationTitle("New Folder")
@@ -218,7 +381,7 @@ struct NewFolderSheet: View {
                     Button("Save") {
                         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmed.isEmpty else { return }
-                        store.addFolder(named: trimmed)
+                        store.addFolder(named: trimmed, priority: selectedPriority)
                         dismiss()
                     }
                 }
