@@ -29,34 +29,67 @@ struct ArtifactEditSheet: View {
             ZStack {
                 MuseoColors.background.ignoresSafeArea()
                 
-                Form {
-                    Section {
-                        Text("Created \(createdAtString)")
-                            .font(MuseoFont.paragraph(12))
-                            .foregroundColor(MuseoColors.textSecondary)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Created chip
+                        HStack {
+                            Text("Created \(createdAtString)")
+                                .font(MuseoFont.paragraph(12))
+                                .foregroundColor(MuseoColors.textPrimary.opacity(0.7))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white)
+                                .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                        )
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        
+                        // Content section
+                        contentSection
+                        
+                        // Delete button
+                        Button(role: .destructive) {
+                            store.delete(artifact: artifact)
+                            store.editingArtifact = nil
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Delete Artifact")
+                                    .font(MuseoFont.bodyTitle(16))
+                                    .foregroundColor(MuseoColors.accent)
+                                Spacer()
+                            }
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                            )
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 24)
                     }
-
-                contentSection
-
-                Section {
-                    Button(role: .destructive) {
-                        store.delete(artifact: artifact)
-                        store.editingArtifact = nil
-                        dismiss()
-                    } label: {
-                        Text("Delete Artifact")
-                    }
-                }
                 }
             }
-            .navigationTitle("Edit Artifact")
-            .font(MuseoFont.header(20))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Edit Artifact")
+                        .font(MuseoFont.header(32))
+                        .foregroundColor(MuseoColors.textPrimary)
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         store.editingArtifact = nil
                         dismiss()
                     }
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.textPrimary)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
@@ -64,6 +97,8 @@ struct ArtifactEditSheet: View {
                         store.editingArtifact = nil
                         dismiss()
                     }
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.accent)
                 }
             }
         }
@@ -71,7 +106,6 @@ struct ArtifactEditSheet: View {
             audioPlayer?.stop()
             isAudioPlaying = false
         }
-
     }
 
     @ViewBuilder
@@ -92,34 +126,63 @@ struct ArtifactEditSheet: View {
     // MARK: - Note editor
 
     private var noteEditor: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 20) {
+            // Title field
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Title")
-                    .font(MuseoFont.paragraph(12))
-                    .foregroundColor(MuseoColors.textSecondary)
-                TextField("Title", text: $artifact.title)
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.textPrimary)
+                
+                TextField("Title", text: Binding(
+                    get: { artifact.title },
+                    set: { newValue in
+                        artifact.title = newValue
+                    }
+                ))
                     .font(MuseoFont.paragraph(16))
                     .foregroundColor(MuseoColors.textPrimary)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                    )
             }
-
-            VStack(alignment: .leading, spacing: 6) {
+            
+            // Content field
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Content")
-                    .font(MuseoFont.paragraph(12))
-                    .foregroundColor(MuseoColors.textSecondary)
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.textPrimary)
+                
                 TextField("Write your thoughts...", text: Binding(
                     get: { artifact.body ?? "" },
-                    set: { artifact.body = $0.isEmpty ? nil : $0 }
+                    set: { newValue in
+                        artifact.body = newValue.isEmpty ? nil : newValue
+                    }
                 ), axis: .vertical)
                     .font(MuseoFont.paragraph(16))
                     .foregroundColor(MuseoColors.textPrimary)
+                    .lineLimit(6, reservesSpace: true)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                    )
             }
         }
+        .padding(.horizontal, 24)
     }
 
     // MARK: - Image editor
 
     private var imageEditor: some View {
-        Section("Image & Frame") {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Image & Frame")
+                .font(MuseoFont.bodyTitle(16))
+                .foregroundColor(MuseoColors.textPrimary)
+            
             if let data = artifact.imageData,
                let uiImage = UIImage(data: data) {
                 ZStack {
@@ -128,6 +191,7 @@ struct ArtifactEditSheet: View {
                         .scaledToFill()
                         .frame(width: 150, height: 150)
                         .clipped()
+                        .cornerRadius(12)
 
                     if let frameName = artifact.frameName {
                         Image(frameName)
@@ -154,18 +218,24 @@ struct ArtifactEditSheet: View {
                                 .scaledToFit()
                                 .frame(width: 60, height: 60)
                                 .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(artifact.frameName == frame ? MuseoColors.accent : .clear,
-                                            lineWidth: 2)
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(artifact.frameName == frame ? MuseoColors.accent : .clear,
+                                                lineWidth: 2)
                                 )
                         }
                     }
                 }
+                .padding(.horizontal, 4)
             }
         }
+        .padding(.horizontal, 24)
     }
     private var videoEditor: some View {
-        Section("Video") {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Video")
+                .font(MuseoFont.bodyTitle(16))
+                .foregroundColor(MuseoColors.textPrimary)
+            
             if let url = artifact.videoURL {
                 VideoPlayer(player: AVPlayer(url: url))
                     .frame(height: 220)
@@ -188,29 +258,71 @@ struct ArtifactEditSheet: View {
                                 .scaledToFit()
                                 .frame(width: 60, height: 60)
                                 .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(
-                                                artifact.frameName == frame ? MuseoColors.accent : .clear,
-                                                lineWidth: 2
-                                            )
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(
+                                            artifact.frameName == frame ? MuseoColors.accent : .clear,
+                                            lineWidth: 2
+                                        )
                                 )
                         }
                     }
                 }
+                .padding(.horizontal, 4)
             }
         }
+        .padding(.horizontal, 24)
     }
     private var audioEditor: some View {
-        Section("Audio") {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Audio")
+                .font(MuseoFont.bodyTitle(16))
+                .foregroundColor(MuseoColors.textPrimary)
 
             // Title field
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Title")
-                    .font(MuseoFont.paragraph(12))
-                    .foregroundColor(MuseoColors.textSecondary)
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.textPrimary)
 
-                TextField("Audio title", text: $artifact.title)
+                TextField("Audio title", text: Binding(
+                    get: { artifact.title },
+                    set: { newValue in
+                        artifact.title = newValue
+                    }
+                ))
                     .font(MuseoFont.paragraph(16))
+                    .foregroundColor(MuseoColors.textPrimary)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                    )
+            }
+            
+            // Audio description field
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Audio description (optional)")
+                    .font(MuseoFont.bodyTitle(14))
+                    .foregroundColor(MuseoColors.textPrimary)
+                
+                TextEditor(text: Binding(
+                    get: { artifact.audioDescription ?? "" },
+                    set: { newValue in
+                        artifact.audioDescription = newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : newValue
+                    }
+                ))
+                    .frame(minHeight: 60)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(MuseoColors.borderMuted, lineWidth: 1)
+                            )
+                    )
+                    .font(MuseoFont.paragraph(14))
                     .foregroundColor(MuseoColors.textPrimary)
             }
 
@@ -231,15 +343,17 @@ struct ArtifactEditSheet: View {
                             .foregroundColor(MuseoColors.textPrimary)
                         Spacer()
                     }
-                    .padding()
+                    .padding(12)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(MuseoColors.accent.opacity(0.1))
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                     )
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(.horizontal, 24)
     }
 
     private func toggleAudioPlayback() {
@@ -252,6 +366,14 @@ struct ArtifactEditSheet: View {
         }
 
         do {
+            // Configure audio session for speaker playback
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+            try session.setActive(true)
+            
+            // Override to ensure speaker output
+            try session.overrideOutputAudioPort(.speaker)
+            
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.play()
             isAudioPlaying = true

@@ -117,12 +117,12 @@ final class MuseoStore: ObservableObject {
 
     // MARK: - Mutations
 
-    func addFolder(named name: String, priority: FolderPriority = .low) {
-        let folder = Folder(name: name, priority: priority)
+    func addFolder(named name: String, color: Color = GalleryBackgroundColor.blue.color, priority: FolderPriority? = nil) {
+        let folder = Folder(name: name, color: color, priority: priority)
         folders.append(folder)
     }
     
-    func updateFolderPriority(_ folder: Folder, to priority: FolderPriority) {
+    func updateFolderPriority(_ folder: Folder, to priority: FolderPriority?) {
         guard let idx = folders.firstIndex(where: { $0.id == folder.id }) else { return }
         folders[idx].priority = priority
     }
@@ -159,7 +159,9 @@ final class MuseoStore: ObservableObject {
     
     func addImageArtifact(imageData: Data,
                           in folder: Folder,
-                          frameName: String?) {
+                          frameName: String?,
+                          imageScale: CGFloat? = nil,
+                          imageOffset: CGSize? = nil) {
         let x = Double.random(in: -120...120)
         let y = Double.random(in: -200...200)
         let artifact = Artifact(folderID: folder.id,
@@ -169,7 +171,10 @@ final class MuseoStore: ObservableObject {
                                 x: x,
                                 y: y,
                                 imageData: imageData,
-                                frameName: frameName)
+                                frameName: frameName,
+                                imageScale: imageScale,
+                                imageOffsetX: imageOffset?.width,
+                                imageOffsetY: imageOffset?.height)
         artifacts.append(artifact)
     }
     
@@ -211,7 +216,9 @@ final class MuseoStore: ObservableObject {
 
     func addAudioArtifact(audioURL: URL,
                           in folder: Folder,
-                          title: String = "Audio note") {
+                          title: String = "Audio note",
+                          audioDescription: String? = nil,
+                          audioDuration: TimeInterval? = nil) {
         let x = Double.random(in: -120...120)
         let y = Double.random(in: -200...200)
         let artifact = Artifact(folderID: folder.id,
@@ -220,7 +227,9 @@ final class MuseoStore: ObservableObject {
                                 body: nil,
                                 x: x,
                                 y: y,
-                                audioURL: audioURL)
+                                audioURL: audioURL,
+                                audioDescription: audioDescription,
+                                audioDuration: audioDuration)
         artifacts.append(artifact)
     }
 

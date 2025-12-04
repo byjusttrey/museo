@@ -18,6 +18,14 @@ enum FolderPriority: String, Codable, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
+    var label: String {
+        switch self {
+        case .low: return "Low !"
+        case .medium: return "Medium !!"
+        case .high: return "High !!!"
+        }
+    }
+    
     var displayName: String {
         switch self {
         case .low: "Low"
@@ -40,13 +48,13 @@ struct Folder: Identifiable, Codable, Hashable {
     var name: String
     var color: ColorData
     var wallpaperID: String?   // identifier for wallpaper choice
-    var priority: FolderPriority
+    var priority: FolderPriority?
 
     init(id: UUID = UUID(),
          name: String,
          color: Color = .orange,
          wallpaperID: String? = nil,
-         priority: FolderPriority = .low) {
+         priority: FolderPriority? = nil) {
         self.id = id
         self.name = name
         self.color = ColorData(color: color)

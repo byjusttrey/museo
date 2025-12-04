@@ -23,38 +23,6 @@ enum FolderSortOption: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Brand Color Palette
-
-enum FolderBrandColor: String, CaseIterable, Identifiable {
-    case cream
-    case accent
-    case accentSoft
-    case textSecondary
-    
-    var id: String { rawValue }
-    
-    var displayName: String {
-        switch self {
-        case .cream: "Cream"
-        case .accent: "Terracotta"
-        case .accentSoft: "Teal"
-        case .textSecondary: "Dusty Rose"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .cream:
-            return MuseoColors.background
-        case .accent:
-            return MuseoColors.accent
-        case .accentSoft:
-            return MuseoColors.accentSoft
-        case .textSecondary:
-            return MuseoColors.textSecondary
-        }
-    }
-}
 
 // MARK: - Simple Mode View
 
@@ -84,8 +52,12 @@ struct SimpleModeView: View {
             // Sort by first character/type - simple alphabetical grouping
             folders.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         case .priority:
-            // Sort by priority: High (!!!) > Medium (!!) > Low (!)
-            folders.sort { $0.priority.sortIndex > $1.priority.sortIndex }
+            // Sort by priority: High (!!!) > Medium (!!) > Low (!) > nil (no priority)
+            folders.sort { folder1, folder2 in
+                let index1 = folder1.priority?.sortIndex ?? 0
+                let index2 = folder2.priority?.sortIndex ?? 0
+                return index1 > index2
+            }
         }
         
         return folders
@@ -247,9 +219,11 @@ struct FolderRowView: View {
                             .font(MuseoFont.bodyTitle(16))
                             .foregroundColor(MuseoColors.textPrimary)
                         
-                        Text(folder.priority.rawValue)
-                            .font(MuseoFont.paragraph(12))
-                            .foregroundColor(MuseoColors.textSecondary)
+                        if let priority = folder.priority {
+                            Text(priority.label)
+                                .font(MuseoFont.paragraph(12))
+                                .foregroundColor(MuseoColors.textSecondary)
+                        }
                     }
                     
                     Text("\(itemCount) item\(itemCount == 1 ? "" : "s")")
@@ -285,50 +259,78 @@ struct FolderColorPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     let folder: Folder
     
+    @State private var selectedColorIndex: Int = 0
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 MuseoColors.background.ignoresSafeArea()
                 
-                VStack(spacing: 24) {
-                    Text("Choose a color for \(folder.name)")
-                        .font(MuseoFont.bodyTitle(16))
-                        .foregroundColor(MuseoColors.textPrimary)
-                        .padding(.top, 24)
-                    
-                    HStack(spacing: 16) {
-                        ForEach(FolderBrandColor.allCases) { brandColor in
-                            Button {
-                                store.updateFolderColor(folder, to: brandColor.color)
-                                dismiss()
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Circle()
-                                        .fill(brandColor.color)
-                                        .frame(width: 50, height: 50)
-                                        .overlay(
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Title
+                        Text("Choose a color for \(folder.name)")
+                            .font(MuseoFont.header(28))
+                            .foregroundColor(MuseoColors.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 16)
+                        
+                        // Color picker
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(Array(MuseoPalette.folderColors.enumerated()), id: \.offset) { index, color in
+                                    Button {
+                                        selectedColorIndex = index
+                                        store.updateFolderColor(folder, to: color)
+                                    } label: {
+                                        VStack(spacing: 8) {
                                             Circle()
-                                                .stroke(MuseoColors.borderMuted, lineWidth: 2)
-                                        )
-                                    
-                                    Text(brandColor.displayName)
-                                        .font(MuseoFont.paragraph(12))
-                                        .foregroundColor(MuseoColors.textPrimary)
+                                                .fill(color)
+                                                .frame(width: 50, height: 50)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(
+                                                            selectedColorIndex == index ? MuseoColors.accent : MuseoColors.borderMuted,
+                                                            lineWidth: selectedColorIndex == index ? 3 : 1
+                                                        )
+                                                )
+                                            
+                                            // Show color name if available
+                                            if let colorKey = MuseoPalette.colorKey(for: color),
+                                               let bgColor = GalleryBackgroundColor(rawValue: colorKey) {
+                                                Text(bgColor.displayName)
+                                                    .font(MuseoFont.paragraph(12))
+                                                    .foregroundColor(MuseoColors.textPrimary)
+                                            }
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
-                            .buttonStyle(.plain)
+                            .padding(.vertical, 8)
                         }
                     }
-                    
-                    Spacer()
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
                 }
-                .padding(.horizontal, 20)
             }
-            .navigationTitle("Folder Color")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Done") {
                         dismiss()
+                    }
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.accent)
+                }
+            }
+            .onAppear {
+                // Find current folder color in palette
+                let currentFolderColor = folder.color.swiftUIColor
+                for (index, paletteColor) in MuseoPalette.folderColors.enumerated() {
+                    if MuseoPalette.areColorsEqual(paletteColor, currentFolderColor) {
+                        selectedColorIndex = index
+                        break
                     }
                 }
             }
@@ -343,47 +345,141 @@ struct NewFolderSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var name: String = ""
-    @State private var selectedPriority: FolderPriority = .low
+    @State private var selectedPriority: FolderPriority? = nil
+    @State private var selectedColorIndex: Int = 0
 
     var body: some View {
         NavigationStack {
             ZStack {
                 MuseoColors.background.ignoresSafeArea()
                 
-                Form {
-                    Section("Folder Name") {
-                        TextField("Name", text: $name)
-                            .font(MuseoFont.paragraph(16))
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Title
+                        Text("New folder")
+                            .font(MuseoFont.header(28))
                             .foregroundColor(MuseoColors.textPrimary)
-                    }
-                    
-                    Section("Priority") {
-                        Picker("Priority", selection: $selectedPriority) {
-                            ForEach(FolderPriority.allCases) { priority in
-                                HStack {
-                                    Text(priority.rawValue)
-                                    Text(priority.displayName)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.bottom, 8)
+                        
+                        // Folder name
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Folder name")
+                                .font(MuseoFont.bodyTitle(14))
+                                .foregroundColor(MuseoColors.textPrimary)
+                            
+                            TextField("Enter folder name", text: $name)
+                                .font(MuseoFont.paragraph(16))
+                                .foregroundColor(MuseoColors.textPrimary)
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(MuseoColors.borderMuted, lineWidth: 1)
+                                        )
+                                )
+                        }
+                        
+                        // Priority
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Priority (optional)")
+                                .font(MuseoFont.bodyTitle(14))
+                                .foregroundColor(MuseoColors.textPrimary)
+                            
+                            HStack(spacing: 8) {
+                                ForEach(FolderPriority.allCases) { priority in
+                                    Button {
+                                        if selectedPriority == priority {
+                                            // Allow deselect
+                                            selectedPriority = nil
+                                        } else {
+                                            selectedPriority = priority
+                                        }
+                                    } label: {
+                                        Text(priority.label)
+                                            .font(MuseoFont.paragraph(14))
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 10)
+                                            .background(
+                                                (selectedPriority == priority)
+                                                ? MuseoColors.accent.opacity(0.15)
+                                                : Color.white
+                                            )
+                                            .foregroundColor(
+                                                selectedPriority == priority
+                                                ? MuseoColors.accent
+                                                : MuseoColors.textSecondary
+                                            )
+                                            .cornerRadius(12)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(
+                                                        selectedPriority == priority
+                                                        ? MuseoColors.accent
+                                                        : MuseoColors.borderMuted,
+                                                        lineWidth: 1
+                                                    )
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .tag(priority)
                             }
                         }
-                        .font(MuseoFont.paragraph(16))
-                        .foregroundColor(MuseoColors.textPrimary)
+                        
+                        // Folder color
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Folder color")
+                                .font(MuseoFont.bodyTitle(14))
+                                .foregroundColor(MuseoColors.textPrimary)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(Array(MuseoPalette.folderColors.enumerated()), id: \.offset) { index, color in
+                                        Button {
+                                            selectedColorIndex = index
+                                        } label: {
+                                            Circle()
+                                                .fill(color)
+                                                .frame(width: 40, height: 40)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(
+                                                            selectedColorIndex == index ? MuseoColors.accent : MuseoColors.borderMuted,
+                                                            lineWidth: selectedColorIndex == index ? 3 : 1
+                                                        )
+                                                )
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                                .padding(.vertical, 8)
+                            }
+                        }
+                        
+                        // Create button
+                        PrimaryButton(title: "Create folder") {
+                            let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !trimmed.isEmpty else { return }
+                            let selectedColor = MuseoPalette.folderColors[selectedColorIndex]
+                            store.addFolder(named: trimmed, color: selectedColor, priority: selectedPriority)
+                            dismiss()
+                        }
+                        .padding(.top, 8)
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
                 }
             }
-            .navigationTitle("New Folder")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !trimmed.isEmpty else { return }
-                        store.addFolder(named: trimmed, priority: selectedPriority)
+                    Button("Cancel") {
                         dismiss()
                     }
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.textPrimary)
                 }
             }
         }

@@ -92,6 +92,7 @@ struct FloatingAddButton: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .sheet(item: $activeCaptureType) { type in
             QuickCaptureSheet(initialType: type)
+                .interactiveDismissDisabled(true)
         }
     }
     

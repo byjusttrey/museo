@@ -15,6 +15,12 @@ struct SettingsSheet: View {
     @AppStorage("museoTheme") private var museoTheme: String = MuseoTheme.light.rawValue
     @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
     @AppStorage("quickCaptureButtonColorKey") private var quickCaptureButtonColorKey: String = "terracotta"
+    @AppStorage("galleryBackgroundMode") private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
+    
+    private var galleryBackgroundMode: GalleryBackgroundMode {
+        get { GalleryBackgroundMode(rawValue: galleryBackgroundModeRawValue) ?? .color }
+        set { galleryBackgroundModeRawValue = newValue.rawValue }
+    }
 
     var body: some View {
         NavigationStack {
@@ -40,7 +46,8 @@ struct SettingsSheet: View {
                                 selected: Binding(
                                     get: { store.galleryWallpaperName },
                                     set: { store.setGalleryWallpaper(name: $0) }
-                                )
+                                ),
+                                backgroundModeRawValue: $galleryBackgroundModeRawValue
                             )
                         } label: {
                             Text("Wallpaper")
@@ -54,7 +61,10 @@ struct SettingsSheet: View {
                                 .font(MuseoFont.paragraph(14))
                                 .foregroundColor(MuseoColors.textSecondary)
                             
-                            GalleryColorPicker(selectedColorKey: $galleryBackgroundColorKey)
+                            GalleryColorPicker(
+                                selectedColorKey: $galleryBackgroundColorKey,
+                                backgroundModeRawValue: $galleryBackgroundModeRawValue
+                            )
                         }
                         .padding(.vertical, 8)
                         
@@ -96,7 +106,8 @@ struct SettingsSheet: View {
 
 struct WallpaperSelectorView: View {
     @Binding var selected: String?
-    let wallpapers = ["wallpaper-1", "wallpaper-2", "wallpaper-3", "wallpaper-4"]
+    @Binding var backgroundModeRawValue: String
+    let wallpapers = ["wallpaper-1", "wallpaper-2", "wallpaper-3", "wallpaper-4", "wallpaper-5", "wallpaper-6", "wallpaper-7"]
 
     var body: some View {
         ScrollView {
@@ -104,6 +115,7 @@ struct WallpaperSelectorView: View {
                 // “Default color” option
                 Button {
                     selected = nil
+                    backgroundModeRawValue = GalleryBackgroundMode.color.rawValue
                 } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
@@ -123,6 +135,7 @@ struct WallpaperSelectorView: View {
                 ForEach(wallpapers, id: \.self) { wallpaper in
                     Button {
                         selected = wallpaper
+                        backgroundModeRawValue = GalleryBackgroundMode.wallpaper.rawValue
                     } label: {
                         Image(wallpaper)
                             .resizable()

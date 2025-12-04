@@ -19,5 +19,23 @@ enum MuseoTheme: String, CaseIterable, Identifiable {
         case .dark: "Dark"
         }
     }
+    
+    var backgroundColor: Color {
+        switch self {
+        case .light:
+            return MuseoColors.background
+        case .dark:
+            return GalleryBackgroundColor.black.color
+        }
+    }
+    
+    var colorScheme: ColorScheme {
+        switch self {
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        }
+    }
 }
 

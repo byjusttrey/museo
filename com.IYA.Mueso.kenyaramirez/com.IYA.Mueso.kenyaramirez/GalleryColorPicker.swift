@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+enum GalleryBackgroundMode: String {
+    case color
+    case wallpaper
+}
+
 enum GalleryBackgroundColor: String, CaseIterable, Identifiable {
     case cream
     case white
@@ -64,6 +69,7 @@ enum GalleryBackgroundColor: String, CaseIterable, Identifiable {
 
 struct GalleryColorPicker: View {
     @Binding var selectedColorKey: String
+    @Binding var backgroundModeRawValue: String
     
     private var selectedColor: GalleryBackgroundColor {
         GalleryBackgroundColor(rawValue: selectedColorKey) ?? .cream
@@ -75,6 +81,7 @@ struct GalleryColorPicker: View {
                 ForEach(GalleryBackgroundColor.allCases) { colorOption in
                     Button {
                         selectedColorKey = colorOption.rawValue
+                        backgroundModeRawValue = GalleryBackgroundMode.color.rawValue
                     } label: {
                         VStack(spacing: 8) {
                             RoundedRectangle(cornerRadius: 8)
@@ -101,7 +108,7 @@ struct GalleryColorPicker: View {
 }
 
 #Preview {
-    GalleryColorPicker(selectedColorKey: .constant("cream"))
+    GalleryColorPicker(selectedColorKey: .constant("cream"), backgroundModeRawValue: .constant(GalleryBackgroundMode.color.rawValue))
         .padding()
         .background(MuseoColors.background)
 }

@@ -17,12 +17,14 @@ struct GalleryModeView: View {
             ZStack {
                 galleryBackground
                     .ignoresSafeArea()
+                    .simultaneousGesture(magnification)
                 
                 ScrollView([.vertical, .horizontal]) {
                     ZStack {
                         Color.clear
                             .frame(width: geo.size.width * 1.5,
                                    height: geo.size.height * 1.5)
+                            .allowsHitTesting(false)
                         
                         ForEach(store.filteredArtifacts) { artifact in
                             DraggableArtifactCard(artifact: artifact,
@@ -33,7 +35,6 @@ struct GalleryModeView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .scaleEffect(currentScale)
                 }
-                .gesture(magnification)
             }
             .onAppear {
                 // Ensure initial state is neutral
@@ -54,10 +55,17 @@ struct GalleryModeView: View {
             }
     }
     @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
+    @AppStorage("galleryBackgroundMode") private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
+    
+    private var galleryBackgroundMode: GalleryBackgroundMode {
+        GalleryBackgroundMode(rawValue: galleryBackgroundModeRawValue) ?? .color
+    }
     
     private var galleryBackground: some View {
         Group {
-            if let name = store.galleryWallpaperName {
+            if galleryBackgroundMode == .wallpaper,
+               let name = store.galleryWallpaperName,
+               !name.isEmpty {
                 Image(name)
                     .resizable()
                     .scaledToFill()
@@ -103,6 +111,7 @@ struct GalleryModeView: View {
                             store.updatePosition(for: artifact.id, x: newX, y: newY)
                         }
                 )
+                .contentShape(Rectangle())
                 .onTapGesture {
                     store.editingArtifact = artifact
                 }
@@ -178,44 +187,34 @@ struct ImageArtifactView: View {
     let folder: Folder?
 
     var body: some View {
-            ZStack(alignment: .bottomLeading) {
-                ZStack {
-                    if let data = artifact.imageData,
-                       let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 200, height: 200)
-                            .clipped()
-                    } else {
-                        // Fallback placeholder
-                        HStack {
-                            Image(systemName: "photo")
-                            Text("Image")
-                        }
-                        .frame(width: 200, height: 200)
-                        .background(Color.white)
-                    }
-
-                    if let frameName = artifact.frameName {
-                        Image(frameName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 220, height: 220)
-                    }
+        ZStack(alignment: .bottomLeading) {
+            // Display the composited image directly (no transforms needed - already composited)
+            if let data = artifact.imageData,
+               let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220, height: 220)
+            } else {
+                // Fallback placeholder
+                HStack {
+                    Image(systemName: "photo")
+                    Text("Image")
                 }
-                
-                // Metadata overlay on image
-                ArtifactMetadataView(artifact: artifact, folder: folder)
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.white.opacity(0.85))
-                    )
+                .frame(width: 220, height: 220)
+                .background(Color.white)
             }
-            .frame(width: 220, height: 220)
-            .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+            
+            // Metadata overlay on image
+            ArtifactMetadataView(artifact: artifact, folder: folder)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.85))
+                )
         }
+        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+    }
 }
 
 // MARK: - Video card
@@ -259,24 +258,45 @@ struct VideoArtifactView: View {
 struct AudioArtifactView: View {
     let artifact: Artifact
     let folder: Folder?
+    @StateObject private var playbackManager = AudioPlaybackManager()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: "waveform.circle.fill")
-                    .font(.headline)                 // smaller icon
-
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(artifact.title.isEmpty ? "Audio note" : artifact.title)
                         .font(MuseoFont.bodyTitle(14))
                         .foregroundColor(MuseoColors.textPrimary)
 
-                    Text("Tap to edit")
-                        .font(MuseoFont.paragraph(12))
-                        .foregroundColor(MuseoColors.textSecondary)
+                    if let description = artifact.audioDescription, !description.isEmpty {
+                        Text(description)
+                            .font(MuseoFont.paragraph(12))
+                            .foregroundColor(MuseoColors.textSecondary)
+                            .lineLimit(2)
+                    } else {
+                        Text("Audio • \(formattedDuration(artifact.audioDuration ?? 0))")
+                            .font(MuseoFont.paragraph(12))
+                            .foregroundColor(MuseoColors.textSecondary)
+                    }
                 }
 
                 Spacer()
+
+                // Play button - separate tap target
+                if let audioURL = artifact.audioURL {
+                    Button {
+                        if playbackManager.isPlaying {
+                            playbackManager.stop()
+                        } else {
+                            playbackManager.play(url: audioURL)
+                        }
+                    } label: {
+                        Image(systemName: playbackManager.isPlaying ? "stop.circle.fill" : "play.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(MuseoColors.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             
             // Metadata section - DATE + FOLDER, with only a TINY top padding
@@ -291,6 +311,13 @@ struct AudioArtifactView: View {
                 .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         )
         .fixedSize(horizontal: false, vertical: true)
+        .contentShape(Rectangle())
+    }
+    
+    private func formattedDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 
