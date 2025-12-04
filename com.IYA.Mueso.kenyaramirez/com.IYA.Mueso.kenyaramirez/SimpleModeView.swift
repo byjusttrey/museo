@@ -443,15 +443,16 @@ struct FolderDetailSheet: View {
                                         dismiss()
                                     } label: {
                                         Group {
+                                            let folder = store.folder(for: artifact)
                                             switch artifact.type {
                                             case .note:
-                                                NoteArtifactView(artifact: artifact)
+                                                NoteArtifactView(artifact: artifact, folder: folder)
                                             case .image:
-                                                ImageArtifactView(artifact: artifact)
+                                                ImageArtifactView(artifact: artifact, folder: folder)
                                             case .video:
-                                                VideoArtifactView(artifact: artifact)
+                                                VideoArtifactView(artifact: artifact, folder: folder)
                                             case .audio:
-                                                AudioArtifactView(artifact: artifact)
+                                                AudioArtifactView(artifact: artifact, folder: folder)
                                             }
                                         }
                                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -501,120 +502,5 @@ struct FolderDetailSheet: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - Artifact Views
-
-struct NoteArtifactView: View {
-    let artifact: Artifact
-
-    var body: some View {
-        let bodyText = (artifact.body ?? "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return VStack(alignment: .leading, spacing: 6) {
-            Text(artifact.title.isEmpty ? "Untitled" : artifact.title)
-                .font(MuseoFont.bodyTitle(16))
-                .foregroundColor(MuseoColors.textPrimary)
-
-            if !bodyText.isEmpty {
-                Text(bodyText)
-                    .font(MuseoFont.paragraph(14))
-                    .foregroundColor(MuseoColors.textSecondary)
-                    .lineLimit(3)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-        )
-    }
-}
-
-struct ImageArtifactView: View {
-    let artifact: Artifact
-    
-    var body: some View {
-        ZStack {
-            if let data = artifact.imageData,
-               let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 160)
-                    .clipped()
-            } else {
-                HStack {
-                    Image(systemName: "photo")
-                    Text("Image")
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 80)
-            }
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-        )
-    }
-}
-
-struct VideoArtifactView: View {
-    let artifact: Artifact
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "video.fill")
-                .font(.title2)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(artifact.title.isEmpty ? "Video" : artifact.title)
-                    .font(MuseoFont.bodyTitle(16))
-                    .foregroundColor(MuseoColors.textPrimary)
-                Text("Tap to edit")
-                    .font(MuseoFont.paragraph(14))
-                    .foregroundColor(MuseoColors.textSecondary)
-            }
-            
-            Spacer()
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-        )
-    }
-}
-
-struct AudioArtifactView: View {
-    let artifact: Artifact
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "waveform.circle.fill")
-                .font(.title2)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(artifact.title.isEmpty ? "Audio note" : artifact.title)
-                    .font(MuseoFont.bodyTitle(16))
-                    .foregroundColor(MuseoColors.textPrimary)
-                Text("Tap to edit")
-                    .font(MuseoFont.paragraph(14))
-                    .foregroundColor(MuseoColors.textSecondary)
-            }
-            
-            Spacer()
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-        )
     }
 }

@@ -8,6 +8,10 @@ struct GalleryModeView: View {
     @EnvironmentObject var store: MuseoStore
     @State private var showAppearanceSheet = false
     
+    // Zoom state (pinch-to-zoom only, no pan)
+    @State private var currentScale: CGFloat = 1.0
+    @State private var finalScale: CGFloat = 1.0
+    
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -22,13 +26,32 @@ struct GalleryModeView: View {
                         
                         ForEach(store.filteredArtifacts) { artifact in
                             DraggableArtifactCard(artifact: artifact,
-                                                  canvasSize: geo.size)
+                                                  canvasSize: geo.size,
+                                                  canvasScale: currentScale)
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .scaleEffect(currentScale)
                 }
+                .gesture(magnification)
+            }
+            .onAppear {
+                // Ensure initial state is neutral
+                currentScale = 1.0
+                finalScale = 1.0
             }
         }
+    }
+    
+    // Magnification gesture for pinch-to-zoom
+    private var magnification: some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                currentScale = min(max(finalScale * value, 0.75), 2.5)
+            }
+            .onEnded { _ in
+                finalScale = currentScale
+            }
     }
     @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
     
@@ -50,6 +73,7 @@ struct GalleryModeView: View {
         @EnvironmentObject var store: MuseoStore
         let artifact: Artifact
         let canvasSize: CGSize
+        let canvasScale: CGFloat
         
         @GestureState private var dragOffset: CGSize = .zero
         
@@ -62,11 +86,20 @@ struct GalleryModeView: View {
                 .gesture(
                     DragGesture()
                         .updating($dragOffset) { value, state, _ in
-                            state = value.translation
+                            // Adjust translation for canvas scale
+                            state = CGSize(
+                                width: value.translation.width / canvasScale,
+                                height: value.translation.height / canvasScale
+                            )
                         }
                         .onEnded { value in
-                            let newX = artifact.x + value.translation.width
-                            let newY = artifact.y + value.translation.height
+                            // Update artifact position accounting for canvas scale
+                            let scaledTranslation = CGSize(
+                                width: value.translation.width / canvasScale,
+                                height: value.translation.height / canvasScale
+                            )
+                            let newX = artifact.x + scaledTranslation.width
+                            let newY = artifact.y + scaledTranslation.height
                             store.updatePosition(for: artifact.id, x: newX, y: newY)
                         }
                 )
@@ -82,98 +115,116 @@ struct GalleryModeView: View {
         
         @ViewBuilder
         private var artifactView: some View {
+            let folder = store.folder(for: artifact)
             switch artifact.type {
             case .note:
-                NoteArtifactView(artifact: artifact)
+                NoteArtifactView(artifact: artifact, folder: folder)
             case .image:
-                ImageArtifactView(artifact: artifact)
+                ImageArtifactView(artifact: artifact, folder: folder)
             case .video:
-                VideoArtifactView(artifact: artifact)
+                VideoArtifactView(artifact: artifact, folder: folder)
             case .audio:
-                AudioArtifactView(artifact: artifact)
+                AudioArtifactView(artifact: artifact, folder: folder)
             }
         }
         
     }
-    
-    // Note-style card
-    // MARK: - Note card
+}
 
-    struct NoteArtifactView: View {
-        let artifact: Artifact
+// MARK: - Artifact Views (Shared)
 
-        var body: some View {
-            // Normalize the optional body once
-            let bodyText = (artifact.body ?? "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
+// Note-style card
+struct NoteArtifactView: View {
+    let artifact: Artifact
+    let folder: Folder?
 
-            return VStack(alignment: .leading, spacing: 6) {
-                Text(artifact.title.isEmpty ? "Untitled" : artifact.title)
-                    .font(MuseoFont.bodyTitle(16))
-                    .foregroundColor(MuseoColors.textPrimary)
+    var body: some View {
+        // Normalize the optional body once
+        let bodyText = (artifact.body ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
 
-                // Only show body if it actually has content
-                if !bodyText.isEmpty {
-                    Text(bodyText)
-                        .font(MuseoFont.paragraph(14))
-                        .foregroundColor(MuseoColors.textSecondary)
-                        .lineLimit(3)
-                }
+        VStack(alignment: .leading, spacing: 6) {
+            Text(artifact.title.isEmpty ? "Untitled" : artifact.title)
+                .font(MuseoFont.bodyTitle(16))
+                .foregroundColor(MuseoColors.textPrimary)
+
+            // Only show body if it actually has content
+            if !bodyText.isEmpty {
+                Text(bodyText)
+                    .font(MuseoFont.paragraph(14))
+                    .foregroundColor(MuseoColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white)
-                    .shadow(color: .black.opacity(0.08),
-                            radius: 10,
-                            y: 4)
-            )
+            
+            // Metadata section - DATE + FOLDER, with only a TINY top padding
+            ArtifactMetadataView(artifact: artifact, folder: folder)
+                .padding(.top, 4)
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.08),
+                        radius: 10,
+                        y: 4)
+        )
+        .fixedSize(horizontal: false, vertical: true)
     }
+}
 
-    
-    // MARK: - Image card
-    struct ImageArtifactView: View {
-        let artifact: Artifact
+// MARK: - Image card
+struct ImageArtifactView: View {
+    let artifact: Artifact
+    let folder: Folder?
 
-        var body: some View {
-            ZStack {
-                if let data = artifact.imageData,
-                   let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
+    var body: some View {
+            ZStack(alignment: .bottomLeading) {
+                ZStack {
+                    if let data = artifact.imageData,
+                       let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 200, height: 200)
+                            .clipped()
+                    } else {
+                        // Fallback placeholder
+                        HStack {
+                            Image(systemName: "photo")
+                            Text("Image")
+                        }
                         .frame(width: 200, height: 200)
-                        .clipped()
-                } else {
-                    // Fallback placeholder
-                    HStack {
-                        Image(systemName: "photo")
-                        Text("Image")
+                        .background(Color.white)
                     }
-                    .frame(width: 200, height: 200)
-                    .background(Color.white)
-                }
 
-                if let frameName = artifact.frameName {
-                    Image(frameName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 220, height: 220)
+                    if let frameName = artifact.frameName {
+                        Image(frameName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 220, height: 220)
+                    }
                 }
+                
+                // Metadata overlay on image
+                ArtifactMetadataView(artifact: artifact, folder: folder)
+                    .padding(8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.85))
+                    )
             }
             .frame(width: 220, height: 220)
             .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         }
-    }
+}
 
+// MARK: - Video card
+struct VideoArtifactView: View {
+    let artifact: Artifact
+    let folder: Folder?
     
-    // MARK: - Video card
-    
-    struct VideoArtifactView: View {
-        let artifact: Artifact
-        
-        var body: some View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
                 Image(systemName: "video.fill")
                     .font(.title2)
@@ -189,21 +240,28 @@ struct GalleryModeView: View {
                 
                 Spacer()
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white)
-                    .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-            )
+            
+            // Metadata section - DATE + FOLDER, with only a TINY top padding
+            ArtifactMetadataView(artifact: artifact, folder: folder)
+                .padding(.top, 4)
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+        )
+        .fixedSize(horizontal: false, vertical: true)
     }
-    
-    // MARK: - Audio card
-    
-    struct AudioArtifactView: View {
-        let artifact: Artifact
+}
 
-        var body: some View {
+// MARK: - Audio card
+struct AudioArtifactView: View {
+    let artifact: Artifact
+    let folder: Folder?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Image(systemName: "waveform.circle.fill")
                     .font(.headline)                 // smaller icon
@@ -220,15 +278,48 @@ struct GalleryModeView: View {
 
                 Spacer()
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 14)
-            .frame(maxWidth: 280, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-            )
+            
+            // Metadata section - DATE + FOLDER, with only a TINY top padding
+            ArtifactMetadataView(artifact: artifact, folder: folder)
+                .padding(.top, 4)
+        }
+        .padding(12)
+        .frame(maxWidth: 280, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+        )
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+// MARK: - Artifact Metadata View
+struct ArtifactMetadataView: View {
+    let artifact: Artifact
+    let folder: Folder?
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd/yyyy"
+        return formatter.string(from: artifact.createdAt)
+    }
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(formattedDate)
+                .font(MuseoFont.paragraph(11))
+                .foregroundColor(MuseoColors.textPrimary)
+            
+            if let folder = folder {
+                Text(folder.name)
+                    .font(MuseoFont.paragraph(11))
+                    .foregroundColor(folder.color.swiftUIColor)
+            } else {
+                Text("Unassigned")
+                    .font(MuseoFont.paragraph(11))
+                    .foregroundColor(MuseoColors.textPrimary)
+            }
         }
     }
-
 }

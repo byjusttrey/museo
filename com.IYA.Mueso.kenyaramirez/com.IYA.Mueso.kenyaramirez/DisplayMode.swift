@@ -46,9 +46,9 @@ final class MuseoStore: ObservableObject {
     // MARK: - Init with sample data
 
     init() {
-        // Sample folders
-        let photography = Folder(name: "Photography", color: .purple.opacity(0.6))
-        let ideas = Folder(name: "Ideas", color: .orange.opacity(0.7))
+        // Sample folders - using brand colors
+        let photography = Folder(name: "Photography", color: Color(red: 119/255, green: 172/255, blue: 183/255)) // Brand blue #77ACB7
+        let ideas = Folder(name: "Ideas", color: Color(red: 204/255, green: 134/255, blue: 131/255)) // Brand pink #CC8683
 
         self.folders = [photography, ideas]
 

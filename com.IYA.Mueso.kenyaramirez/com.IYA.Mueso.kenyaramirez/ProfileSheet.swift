@@ -18,7 +18,7 @@ struct ProfileSheet: View {
                 MuseoColors.background.ignoresSafeArea()
                 
                 Form {
-                    Section("Profile") {
+                    Section {
                         HStack {
                             Text("Username")
                                 .font(MuseoFont.paragraph(14))
@@ -45,13 +45,21 @@ struct ProfileSheet: View {
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
+                .background(MuseoColors.background)
             }
-            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Profile")
+                        .font(MuseoFont.header(32))
+                        .foregroundColor(MuseoColors.textPrimary)
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Done") {
                         store.isShowingProfile = false
                     }
+                    .font(MuseoFont.bodyTitle(16))
                 }
             }
         }

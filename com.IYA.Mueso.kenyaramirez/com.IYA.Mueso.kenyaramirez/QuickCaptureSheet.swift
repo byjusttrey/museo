@@ -15,8 +15,16 @@ import AVFoundation
 
 struct QuickCaptureSheet: View {
     @EnvironmentObject var store: MuseoStore
+    @Environment(\.dismiss) private var dismiss
     
-    @State private var selectedType: ArtifactType = .note
+    let initialType: ArtifactType?
+    
+    @State private var selectedType: ArtifactType
+    
+    init(initialType: ArtifactType? = nil) {
+        self.initialType = initialType
+        _selectedType = State(initialValue: initialType ?? .note)
+    }
     @State private var selectedFolder: Folder?
     @State private var titleText: String = ""
     @State private var bodyText: String = ""
@@ -125,7 +133,7 @@ struct QuickCaptureSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
-                        store.isShowingQuickCapture = false
+                        dismiss()
                     }
                 }
             }
@@ -386,8 +394,7 @@ struct QuickCaptureSheet: View {
                                    title: finalTitle)
             
         }
-        store.isShowingQuickCapture = false
-
+        dismiss()
     }
 
 }

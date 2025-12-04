@@ -10,8 +10,14 @@ import SwiftUI
 enum GalleryBackgroundColor: String, CaseIterable, Identifiable {
     case cream
     case white
-    case beige
-    case warmGray
+    case black
+    case brown
+    case blue
+    case terracotta
+    case yellow
+    case pink
+    case purple
+    case green
     
     var id: String { rawValue }
     
@@ -19,21 +25,39 @@ enum GalleryBackgroundColor: String, CaseIterable, Identifiable {
         switch self {
         case .cream: "Cream"
         case .white: "White"
-        case .beige: "Beige"
-        case .warmGray: "Warm Gray"
+        case .black: "Black"
+        case .brown: "Brown"
+        case .blue: "Blue"
+        case .terracotta: "Terracotta"
+        case .yellow: "Yellow"
+        case .pink: "Pink"
+        case .purple: "Purple"
+        case .green: "Green"
         }
     }
     
     var color: Color {
         switch self {
         case .cream:
-            return MuseoColors.background // #FDF2D5
+            return Color(red: 253/255, green: 242/255, blue: 213/255) // #FDF2D5
         case .white:
-            return Color.white
-        case .beige:
-            return Color(red: 0.96, green: 0.93, blue: 0.88)
-        case .warmGray:
-            return Color(red: 0.93, green: 0.90, blue: 0.84)
+            return Color(red: 255/255, green: 255/255, blue: 255/255) // #FFFFFF
+        case .black:
+            return Color(red: 0/255, green: 0/255, blue: 0/255) // #000000
+        case .brown:
+            return Color(red: 105/255, green: 68/255, blue: 50/255) // #694432
+        case .blue:
+            return Color(red: 119/255, green: 172/255, blue: 183/255) // #77ACB7
+        case .terracotta:
+            return Color(red: 206/255, green: 122/255, blue: 83/255) // #CE7A53
+        case .yellow:
+            return Color(red: 246/255, green: 208/255, blue: 96/255) // #F6D060
+        case .pink:
+            return Color(red: 204/255, green: 134/255, blue: 131/255) // #CC8683
+        case .purple:
+            return Color(red: 143/255, green: 134/255, blue: 177/255) // #8F86B1
+        case .green:
+            return Color(red: 170/255, green: 195/255, blue: 156/255) // #AAC39C
         }
     }
 }
