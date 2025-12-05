@@ -224,17 +224,20 @@ struct VideoArtifactView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 Image(systemName: "video.fill")
-                    .font(.title2)
+                    .font(.title3) // closer to audio play icon size
+                    .foregroundColor(MuseoColors.accent)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(artifact.title.isEmpty ? "Video" : artifact.title)
-                        .font(MuseoFont.bodyTitle(16))
+                        .font(MuseoFont.bodyTitle(14))          // match audio
                         .foregroundColor(MuseoColors.textPrimary)
+
                     Text("Tap to edit")
-                        .font(MuseoFont.paragraph(14))
+                        .font(MuseoFont.paragraph(12))          // match audio subtitle size
                         .foregroundColor(MuseoColors.textSecondary)
+                        .lineLimit(1)
                 }
                 
                 Spacer()
@@ -245,14 +248,17 @@ struct VideoArtifactView: View {
                 .padding(.top, 4)
         }
         .padding(12)
+        .frame(maxWidth: 280, alignment: .leading)   // 👈 same width as audio
         .background(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 16)       // match audio radius
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         )
         .fixedSize(horizontal: false, vertical: true)
+        .contentShape(Rectangle())                   // same tap area behavior
     }
 }
+
 
 // MARK: - Audio card
 struct AudioArtifactView: View {

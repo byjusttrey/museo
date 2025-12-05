@@ -235,7 +235,29 @@ struct ArtifactEditSheet: View {
             Text("Video")
                 .font(MuseoFont.bodyTitle(16))
                 .foregroundColor(MuseoColors.textPrimary)
-            
+
+            // Title field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Title")
+                    .font(MuseoFont.bodyTitle(16))
+                    .foregroundColor(MuseoColors.textPrimary)
+
+                TextField("Video title", text: Binding(
+                    get: { artifact.title },
+                    set: { newValue in
+                        artifact.title = newValue
+                    }
+                ))
+                .font(MuseoFont.paragraph(16))
+                .foregroundColor(MuseoColors.textPrimary)
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                )
+            }
+
             if let url = artifact.videoURL {
                 VideoPlayer(player: AVPlayer(url: url))
                     .frame(height: 220)
@@ -245,33 +267,12 @@ struct ArtifactEditSheet: View {
                     .font(MuseoFont.paragraph(14))
                     .foregroundColor(MuseoColors.textSecondary)
             }
-
-            // Optional: frame picker, re-using same concept as images
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(frameNames, id: \.self) { frame in
-                        Button {
-                            artifact.frameName = frame
-                        } label: {
-                            Image(frame)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 60, height: 60)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(
-                                            artifact.frameName == frame ? MuseoColors.accent : .clear,
-                                            lineWidth: 2
-                                        )
-                                )
-                        }
-                    }
-                }
-                .padding(.horizontal, 4)
-            }
         }
         .padding(.horizontal, 24)
     }
+
+
+
     private var audioEditor: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Audio")

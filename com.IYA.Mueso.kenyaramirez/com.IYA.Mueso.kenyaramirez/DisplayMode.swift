@@ -199,17 +199,17 @@ final class MuseoStore: ObservableObject {
 
     func addVideoArtifact(videoURL: URL,
                           in folder: Folder,
-                          frameName: String?) {
+                          title: String? = nil) {
         let x = Double.random(in: -120...120)
         let y = Double.random(in: -200...200)
         let artifact = Artifact(folderID: folder.id,
                                 type: .video,
-                                title: "Video",
+                                title: title?.isEmpty == false ? title! : "Video",
                                 body: nil,
                                 x: x,
                                 y: y,
                                 imageData: nil,
-                                frameName: frameName,
+                                frameName: nil,
                                 videoURL: videoURL)
         artifacts.append(artifact)
     }

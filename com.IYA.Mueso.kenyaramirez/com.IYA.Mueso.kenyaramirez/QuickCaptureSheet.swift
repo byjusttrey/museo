@@ -11,6 +11,8 @@
 import SwiftUI
 import PhotosUI
 import AVFoundation
+import AVKit
+import UniformTypeIdentifiers
 
 // MARK: - Preview Audio Player Delegate
 
@@ -74,6 +76,7 @@ struct QuickCaptureSheet: View {
     
     // Video
     @State private var videoSelection: PhotosPickerItem?
+    @State private var videoTitle: String = ""
     @State private var selectedVideoURL: URL?
     @State private var selectedVideoFrameName: String? = "frame-1"
     
@@ -401,7 +404,26 @@ struct QuickCaptureSheet: View {
     }
     
     private var videoInputs: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
+
+            // TITLE FIELD
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Title")
+                    .font(MuseoFont.bodyTitle(14))
+                    .foregroundColor(MuseoColors.textPrimary)
+
+                TextField("Video title", text: $videoTitle)
+                    .font(MuseoFont.paragraph(16))
+                    .foregroundColor(MuseoColors.textPrimary)
+                    .padding(10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                    )
+            }
+            .padding(.horizontal, 16)
+
+            // PICKER ROW
             PhotosPicker(selection: $videoSelection, matching: .videos) {
                 HStack {
                     Image(systemName: "video")
@@ -420,50 +442,43 @@ struct QuickCaptureSheet: View {
             .padding(.horizontal, 16)
             .onChange(of: videoSelection) { newItem in
                 guard let newItem else { return }
+
                 Task {
-                    if let url = try? await newItem.loadTransferable(type: URL.self) {
-                        await MainActor.run {
-                            self.selectedVideoURL = url
-                            self.selectedVideoFrameName = frameNames.first
+                    do {
+                        print("📹 supported types:", newItem.supportedContentTypes)
+
+                        guard let data = try await newItem.loadTransferable(type: Data.self) else {
+                            print("❌ Failed to load video DATA from PhotosPickerItem")
+                            return
                         }
+
+                        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                        let destURL = docs.appendingPathComponent(UUID().uuidString + ".mov")
+
+                        try data.write(to: destURL)
+
+                        await MainActor.run {
+                            configureVideoAudioSession()        // if you added this
+                            self.selectedVideoURL = destURL
+                            // ❌ no more selectedVideoFrameName here
+                        }
+                    } catch {
+                        print("❌ Error loading video from PhotosPickerItem:", error)
                     }
                 }
             }
-            
-            if selectedVideoURL != nil {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Frame")
-                        .font(MuseoFont.paragraph(12))
-                        .foregroundColor(MuseoColors.textSecondary)
-                        .padding(.horizontal, 16)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(frameNames, id: \.self) { frame in
-                                Button {
-                                    selectedVideoFrameName = frame
-                                } label: {
-                                    Image(frame)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 60, height: 60)
-                                        .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(
-                                                selectedVideoFrameName == frame ?
-                                                MuseoColors.accent : .clear,
-                                                lineWidth: 2
-                                            )
-                                        )
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                }
+
+            // INLINE VIDEO PREVIEW
+            if let url = selectedVideoURL {
+                VideoPlayer(player: AVPlayer(url: url))
+                    .frame(height: 220)
+                    .cornerRadius(12)
+                    .padding(.horizontal, 16)
             }
         }
     }
+
+
     
     private var audioInputs: some View {
         VStack(spacing: 20) {
@@ -694,9 +709,12 @@ struct QuickCaptureSheet: View {
             
         case .video:
             guard let url = selectedVideoURL else { return }
-            store.addVideoArtifact(videoURL: url,
-                                   in: folder,
-                                   frameName: selectedVideoFrameName)
+            store.addVideoArtifact(
+                videoURL: url,
+                in: folder,
+                title: videoTitle
+            )
+
             
         case .audio:
             // Use the URL from lastRecordedClip if available, otherwise fall back to recordedAudioURL
@@ -738,6 +756,17 @@ struct QuickCaptureSheet: View {
         }
         dismiss()
     }
+    
+    private func configureVideoAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .moviePlayback, options: [.defaultToSpeaker])
+            try session.setActive(true)
+        } catch {
+            print("⚠️ Video audio session error:", error)
+        }
+    }
+
     
     // MARK: - Image Compositing Helper
     
