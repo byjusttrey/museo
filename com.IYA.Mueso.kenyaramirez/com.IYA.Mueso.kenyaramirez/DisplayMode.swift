@@ -236,5 +236,30 @@ final class MuseoStore: ObservableObject {
     func setGalleryWallpaper(name: String?) {
         galleryWallpaperName = name
     }
+    
+    // MARK: - Layering (z-order)
 
+        /// zIndex based on backing array order (later = on top).
+    func zIndex(for artifactID: UUID) -> Double {
+        guard let index = artifacts.firstIndex(where: { $0.id == artifactID }) else {
+            return 0
+        }
+        return Double(index)
+    }
+    
+    /// Move the artifact to the end of the array so it renders on top.
+    func bringToFront(_ artifactID: UUID) {
+        guard let index = artifacts.firstIndex(where: { $0.id == artifactID }) else { return }
+        let item = artifacts.remove(at: index)
+        artifacts.append(item)
+    }
+    
+    /// Move the artifact to the beginning of the array so it renders behind others.
+    func sendToBack(_ artifactID: UUID) {
+        guard let index = artifacts.firstIndex(where: { $0.id == artifactID }) else { return }
+        let item = artifacts.remove(at: index)
+        artifacts.insert(item, at: 0)
+    }
 }
+
+

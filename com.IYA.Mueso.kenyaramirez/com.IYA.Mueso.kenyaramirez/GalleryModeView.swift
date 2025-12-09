@@ -1,5 +1,3 @@
-// GalleryModeView.swift
-
 import SwiftUI
 import UIKit
 import AVFoundation
@@ -8,54 +6,139 @@ struct GalleryModeView: View {
     @EnvironmentObject var store: MuseoStore
     @State private var showAppearanceSheet = false
     
-    // Zoom state (pinch-to-zoom only, no pan)
+    // Zoom state
     @State private var currentScale: CGFloat = 1.0
     @State private var finalScale: CGFloat = 1.0
+    
+    // Pan state (for the whole canvas)
+    @State private var canvasOffset: CGSize = .zero
+    @State private var lastPanOffset: CGSize = .zero
     
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 galleryBackground
                     .ignoresSafeArea()
-                    .simultaneousGesture(magnification)
                 
-                ScrollView([.vertical, .horizontal]) {
-                    ZStack {
-                        Color.clear
-                            .frame(width: geo.size.width * 1.5,
-                                   height: geo.size.height * 1.5)
-                            .allowsHitTesting(false)
-                        
-                        ForEach(store.filteredArtifacts) { artifact in
-                            DraggableArtifactCard(artifact: artifact,
-                                                  canvasSize: geo.size,
-                                                  canvasScale: currentScale)
+                canvasLayer(in: geo.size)
+                
+                // Center-on-content button
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            centerOnContent()
+                        } label: {
+                            Image(systemName: "scope")
+                                .font(.system(size: 18, weight: .medium))
+                                .padding(8)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
                         }
+                        .padding(.top, 12)
+                        .padding(.trailing, 12)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .scaleEffect(currentScale)
+                    Spacer()
                 }
             }
             .onAppear {
-                // Ensure initial state is neutral
                 currentScale = 1.0
                 finalScale = 1.0
+                canvasOffset = .zero
+                lastPanOffset = .zero
             }
         }
     }
     
-    // Magnification gesture for pinch-to-zoom
+    // MARK: - Canvas Layer
+    
+    @ViewBuilder
+    private func canvasLayer(in size: CGSize) -> some View {
+        ZStack {
+            // Invisible canvas filling the screen; artifacts are centered + offset by x/y.
+            Color.clear
+            
+            ForEach(store.filteredArtifacts) { artifact in
+                DraggableArtifactCard(
+                    artifact: artifact,
+                    canvasScale: currentScale
+                )
+            }
+        }
+        // Think of this as the Freeform sheet: you can zoom and pan the whole thing.
+        .scaleEffect(currentScale)
+        .offset(canvasOffset)
+        .contentShape(Rectangle())
+        .gesture(
+            panGesture.simultaneously(with: magnification)
+        )
+    }
+    
+    // MARK: - Gestures
+    
     private var magnification: some Gesture {
         MagnificationGesture()
             .onChanged { value in
-                currentScale = min(max(finalScale * value, 0.75), 2.5)
+                currentScale = min(max(finalScale * value, 0.5), 3.0)
             }
             .onEnded { _ in
                 finalScale = currentScale
             }
     }
-    @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
-    @AppStorage("galleryBackgroundMode") private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
+    
+    private var panGesture: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                canvasOffset = CGSize(
+                    width: lastPanOffset.width + value.translation.width,
+                    height: lastPanOffset.height + value.translation.height
+                )
+            }
+            .onEnded { _ in
+                lastPanOffset = canvasOffset
+            }
+    }
+    
+    /// Centers the viewport on the bounding box of current artifacts.
+    private func centerOnContent() {
+        let artifacts = store.filteredArtifacts
+        guard !artifacts.isEmpty else {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                currentScale = 1.0
+                finalScale = 1.0
+                canvasOffset = .zero
+                lastPanOffset = .zero
+            }
+            return
+        }
+        
+        let xs = artifacts.map { $0.x }
+        let ys = artifacts.map { $0.y }
+        
+        guard let minX = xs.min(),
+              let maxX = xs.max(),
+              let minY = ys.min(),
+              let maxY = ys.max() else { return }
+        
+        let centerX = (minX + maxX) / 2.0
+        let centerY = (minY + maxY) / 2.0
+        
+        // Because artifact.x/y are offsets around the screen center, we just shift opposite.
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+            let offsetX = -centerX * currentScale
+            let offsetY = -centerY * currentScale
+            canvasOffset = CGSize(width: offsetX, height: offsetY)
+            lastPanOffset = canvasOffset
+        }
+    }
+    
+    // MARK: - Background
+    
+    @AppStorage("galleryBackgroundColorKey")
+    private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
+    
+    @AppStorage("galleryBackgroundMode")
+    private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
     
     private var galleryBackgroundMode: GalleryBackgroundMode {
         GalleryBackgroundMode(rawValue: galleryBackgroundModeRawValue) ?? .color
@@ -70,56 +153,123 @@ struct GalleryModeView: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                // Use stored background color, defaulting to cream
                 (GalleryBackgroundColor(rawValue: galleryBackgroundColorKey) ?? .cream).color
             }
         }
     }
     
     
+    // MARK: - Draggable Card (long-press + drag + layering)
+    
+    // Inside GalleryModeView
+
     struct DraggableArtifactCard: View {
         @EnvironmentObject var store: MuseoStore
+        
         let artifact: Artifact
-        let canvasSize: CGSize
         let canvasScale: CGFloat
         
         @GestureState private var dragOffset: CGSize = .zero
+        @GestureState private var isPressing: Bool = false
+        @State private var isDragging: Bool = false
+        @State private var showingLayerActions: Bool = false
         
         var body: some View {
-            let basePosition = canvasPosition(for: artifact, in: canvasSize)
-            
-            artifactView
-                .position(x: basePosition.x + dragOffset.width,
-                          y: basePosition.y + dragOffset.height)
-                .gesture(
-                    DragGesture()
-                        .updating($dragOffset) { value, state, _ in
-                            // Adjust translation for canvas scale
-                            state = CGSize(
-                                width: value.translation.width / canvasScale,
-                                height: value.translation.height / canvasScale
-                            )
-                        }
-                        .onEnded { value in
-                            // Update artifact position accounting for canvas scale
-                            let scaledTranslation = CGSize(
-                                width: value.translation.width / canvasScale,
-                                height: value.translation.height / canvasScale
-                            )
-                            let newX = artifact.x + scaledTranslation.width
-                            let newY = artifact.y + scaledTranslation.height
-                            store.updatePosition(for: artifact.id, x: newX, y: newY)
-                        }
-                )
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    store.editingArtifact = artifact
+            ZStack(alignment: .topTrailing) {
+                // Main card content
+                artifactView
+                
+                // Small layers button in the corner
+                Button {
+                    showingLayerActions = true
+                } label: {
+                    Image(systemName: "rectangle.stack")
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(6)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
                 }
+                .buttonStyle(.plain)
+                .padding(4)
+            }
+            // Place around screen center using x/y
+            .offset(
+                x: artifact.x + dragOffset.width,
+                y: artifact.y + dragOffset.height
+            )
+            // Pickup feedback
+            .scaleEffect(isPressing || isDragging ? 1.08 : 1.0)
+            .shadow(color: .black.opacity(isPressing || isDragging ? 0.20 : 0.08),
+                    radius: isPressing || isDragging ? 16 : 10,
+                    y: isPressing || isDragging ? 8 : 4)
+            .animation(.spring(response: 0.22, dampingFraction: 0.85),
+                       value: isPressing || isDragging)
+            // Layer ordering
+            .zIndex(store.zIndex(for: artifact.id) + (isDragging ? 1000 : 0))
+            // Move with long-press + drag
+            .gesture(longPressDragGesture)
+            // Tap anywhere (except the layers button) to edit
+            .onTapGesture {
+                store.editingArtifact = artifact
+            }
+            // Layer actions sheet
+            .confirmationDialog("Layer actions", isPresented: $showingLayerActions, titleVisibility: .visible) {
+                Button("Bring to Front") {
+                    store.bringToFront(artifact.id)
+                }
+                Button("Send to Back") {
+                    store.sendToBack(artifact.id)
+                }
+                Button("Cancel", role: .cancel) { }
+            }
         }
         
-        private func canvasPosition(for artifact: Artifact, in size: CGSize) -> CGPoint {
-            let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            return CGPoint(x: center.x + artifact.x, y: center.y + artifact.y)
+        // Long-press to “pick up”, then drag to move
+        private var longPressDragGesture: some Gesture {
+            LongPressGesture(minimumDuration: 0.25)
+                .sequenced(before: DragGesture())
+                .updating($isPressing) { value, state, _ in
+                    switch value {
+                    case .first(true):
+                        state = true
+                    case .second(true, _):
+                        state = true
+                    default:
+                        state = false
+                    }
+                }
+                .updating($dragOffset) { value, state, _ in
+                    if case .second(true, let drag?) = value {
+                        let t = drag.translation
+                        state = CGSize(
+                            width: t.width / canvasScale,
+                            height: t.height / canvasScale
+                        )
+                    }
+                }
+                .onChanged { value in
+                    if case .second(true, _) = value {
+                        if !isDragging { isDragging = true }
+                    }
+                }
+                .onEnded { value in
+                    guard case .second(true, let drag?) = value else {
+                        isDragging = false
+                        return
+                    }
+                    
+                    let t = drag.translation
+                    let scaledTranslation = CGSize(
+                        width: t.width / canvasScale,
+                        height: t.height / canvasScale
+                    )
+                    
+                    let newX = artifact.x + scaledTranslation.width
+                    let newY = artifact.y + scaledTranslation.height
+                    
+                    store.updatePosition(for: artifact.id, x: newX, y: newY)
+                    isDragging = false
+                }
         }
         
         @ViewBuilder
@@ -136,19 +286,18 @@ struct GalleryModeView: View {
                 AudioArtifactView(artifact: artifact, folder: folder)
             }
         }
-        
     }
+
 }
 
-// MARK: - Artifact Views (Shared)
 
-// Note-style card
+// MARK: - Artifact Views (unchanged)
+
 struct NoteArtifactView: View {
     let artifact: Artifact
     let folder: Folder?
 
     var body: some View {
-        // Normalize the optional body once
         let bodyText = (artifact.body ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -157,7 +306,6 @@ struct NoteArtifactView: View {
                 .font(MuseoFont.bodyTitle(16))
                 .foregroundColor(MuseoColors.textPrimary)
 
-            // Only show body if it actually has content
             if !bodyText.isEmpty {
                 Text(bodyText)
                     .font(MuseoFont.paragraph(14))
@@ -165,7 +313,6 @@ struct NoteArtifactView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             
-            // Metadata section - DATE + FOLDER, with only a TINY top padding
             ArtifactMetadataView(artifact: artifact, folder: folder)
                 .padding(.top, 4)
         }
@@ -181,14 +328,12 @@ struct NoteArtifactView: View {
     }
 }
 
-// MARK: - Image card
 struct ImageArtifactView: View {
     let artifact: Artifact
     let folder: Folder?
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Display the composited image directly (no transforms needed - already composited)
             if let data = artifact.imageData,
                let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage)
@@ -196,7 +341,6 @@ struct ImageArtifactView: View {
                     .scaledToFit()
                     .frame(width: 220, height: 220)
             } else {
-                // Fallback placeholder
                 HStack {
                     Image(systemName: "photo")
                     Text("Image")
@@ -205,7 +349,6 @@ struct ImageArtifactView: View {
                 .background(Color.white)
             }
             
-            // Metadata overlay on image
             ArtifactMetadataView(artifact: artifact, folder: folder)
                 .padding(8)
                 .background(
@@ -217,7 +360,6 @@ struct ImageArtifactView: View {
     }
 }
 
-// MARK: - Video card
 struct VideoArtifactView: View {
     let artifact: Artifact
     let folder: Folder?
@@ -226,16 +368,16 @@ struct VideoArtifactView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Image(systemName: "video.fill")
-                    .font(.title3) // closer to audio play icon size
+                    .font(.title3)
                     .foregroundColor(MuseoColors.accent)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(artifact.title.isEmpty ? "Video" : artifact.title)
-                        .font(MuseoFont.bodyTitle(14))          // match audio
+                        .font(MuseoFont.bodyTitle(14))
                         .foregroundColor(MuseoColors.textPrimary)
 
                     Text("Tap to edit")
-                        .font(MuseoFont.paragraph(12))          // match audio subtitle size
+                        .font(MuseoFont.paragraph(12))
                         .foregroundColor(MuseoColors.textSecondary)
                         .lineLimit(1)
                 }
@@ -243,24 +385,21 @@ struct VideoArtifactView: View {
                 Spacer()
             }
             
-            // Metadata section - DATE + FOLDER, with only a TINY top padding
             ArtifactMetadataView(artifact: artifact, folder: folder)
                 .padding(.top, 4)
         }
         .padding(12)
-        .frame(maxWidth: 280, alignment: .leading)   // 👈 same width as audio
+        .frame(maxWidth: 280, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 16)       // match audio radius
+            RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
         )
         .fixedSize(horizontal: false, vertical: true)
-        .contentShape(Rectangle())                   // same tap area behavior
+        .contentShape(Rectangle())
     }
 }
 
-
-// MARK: - Audio card
 struct AudioArtifactView: View {
     let artifact: Artifact
     let folder: Folder?
@@ -288,7 +427,6 @@ struct AudioArtifactView: View {
 
                 Spacer()
 
-                // Play button - separate tap target
                 if let audioURL = artifact.audioURL {
                     Button {
                         if playbackManager.isPlaying {
@@ -305,7 +443,6 @@ struct AudioArtifactView: View {
                 }
             }
             
-            // Metadata section - DATE + FOLDER, with only a TINY top padding
             ArtifactMetadataView(artifact: artifact, folder: folder)
                 .padding(.top, 4)
         }
@@ -328,6 +465,7 @@ struct AudioArtifactView: View {
 }
 
 // MARK: - Artifact Metadata View
+
 struct ArtifactMetadataView: View {
     let artifact: Artifact
     let folder: Folder?
