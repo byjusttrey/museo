@@ -10,22 +10,26 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct SettingsSheet: View {
     @EnvironmentObject var store: MuseoStore
-    @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
-    @AppStorage("quickCaptureButtonColorKey") private var quickCaptureButtonColorKey: String = "terracotta"
-    @AppStorage("galleryBackgroundMode") private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
-    
+
+    // Still fine to keep this as AppStorage – it’s unrelated to the canvas.
+    @AppStorage("quickCaptureButtonColorKey")
+    private var quickCaptureButtonColorKey: String = "terracotta"
+
+    // Convenience computed var if you need it
     private var galleryBackgroundMode: GalleryBackgroundMode {
-        get { GalleryBackgroundMode(rawValue: galleryBackgroundModeRawValue) ?? .color }
-        set { galleryBackgroundModeRawValue = newValue.rawValue }
+        get { GalleryBackgroundMode(rawValue: store.galleryBackgroundModeRawValue) ?? .color }
+        set { store.galleryBackgroundModeRawValue = newValue.rawValue }
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 MuseoColors.background.ignoresSafeArea()
-                
+
                 Form {
                     // MARK: - Gallery Appearance
                     Section {
@@ -33,37 +37,54 @@ struct SettingsSheet: View {
                         NavigationLink {
                             WallpaperSelectorView(
                                 selected: Binding(
-                                    get: { store.galleryWallpaperName },
-                                    set: { store.setGalleryWallpaper(name: $0) }
+                                    get: {
+                                        store.galleryWallpaperName.isEmpty
+                                        ? nil
+                                        : store.galleryWallpaperName
+                                    },
+                                    set: { newValue in
+                                        store.setGalleryWallpaper(name: newValue)
+                                    }
                                 ),
-                                backgroundModeRawValue: $galleryBackgroundModeRawValue
+                                backgroundModeRawValue: Binding(
+                                    get: { store.galleryBackgroundModeRawValue },
+                                    set: { store.galleryBackgroundModeRawValue = $0 }
+                                )
                             )
                         } label: {
                             Text("Wallpaper")
                                 .font(MuseoFont.bodyTitle(14))
                                 .foregroundColor(MuseoColors.textPrimary)
                         }
-                        
+
                         // Background color picker
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Background Color")
                                 .font(MuseoFont.paragraph(14))
                                 .foregroundColor(MuseoColors.textSecondary)
-                            
+
                             GalleryColorPicker(
-                                selectedColorKey: $galleryBackgroundColorKey,
-                                backgroundModeRawValue: $galleryBackgroundModeRawValue
+                                selectedColorKey: Binding(
+                                    get: { store.galleryBackgroundColorKey },
+                                    set: { store.galleryBackgroundColorKey = $0 }
+                                ),
+                                backgroundModeRawValue: Binding(
+                                    get: { store.galleryBackgroundModeRawValue },
+                                    set: { store.galleryBackgroundModeRawValue = $0 }
+                                )
                             )
                         }
                         .padding(.vertical, 8)
-                        
-                        // Quick Capture Button Color picker
+
+                        // Quick Capture Button Color picker (still AppStorage)
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Quick Capture Button Color")
                                 .font(MuseoFont.paragraph(14))
                                 .foregroundColor(MuseoColors.textSecondary)
-                            
-                            QuickCaptureButtonColorPicker(selectedColorKey: $quickCaptureButtonColorKey)
+
+                            QuickCaptureButtonColorPicker(
+                                selectedColorKey: $quickCaptureButtonColorKey
+                            )
                         }
                         .padding(.vertical, 8)
                     } header: {
@@ -92,6 +113,7 @@ struct SettingsSheet: View {
         }
     }
 }
+
 
 struct WallpaperSelectorView: View {
     @Binding var selected: String?

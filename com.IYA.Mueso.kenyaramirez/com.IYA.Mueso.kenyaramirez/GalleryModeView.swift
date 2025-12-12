@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import AVFoundation
 
+
 struct GalleryModeView: View {
     @EnvironmentObject var store: MuseoStore
     @State private var showAppearanceSheet = false
@@ -47,14 +48,17 @@ struct GalleryModeView: View {
                 .zIndex(2)
 
                 // Layers modal overlay
-                if let artifact = store.activeLayerArtifact, store.isShowingLayersModal {
+                if store.showingLayerActions,
+                   let id = store.layerActionsArtifactID,
+                   let artifact = store.artifacts.first(where: { $0.id == id }) {
+
                     LayersModalView(
                         isPresented: Binding(
-                            get: { store.isShowingLayersModal },
+                            get: { store.showingLayerActions },
                             set: { newValue in
-                                store.isShowingLayersModal = newValue
+                                store.showingLayerActions = newValue
                                 if !newValue {
-                                    store.activeLayerArtifact = nil
+                                    store.layerActionsArtifactID = nil
                                 }
                             }
                         ),
@@ -71,8 +75,27 @@ struct GalleryModeView: View {
                     .zIndex(99999)
                 }
             }
+            // 👇 Put the auto-center here, on the ZStack (or even on GeometryReader’s content)
+            .onAppear {
+                Task { @MainActor in
+                    // Reset zoom/pan
+                    currentScale = 1.0
+                    finalScale = 1.0
+                    canvasOffset = .zero
+                    lastPanOffset = .zero
+                    
+                    // Let layout settle so artifacts are in place
+                    try? await Task.sleep(for: .milliseconds(50))
+
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                        centerOnContent()
+                    }
+                }
+            }
         }
     }
+
+
     
     // MARK: - Canvas Layer
     
@@ -158,26 +181,20 @@ struct GalleryModeView: View {
     
     // MARK: - Background
     
-    @AppStorage("galleryBackgroundColorKey")
-    private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
-    
-    @AppStorage("galleryBackgroundMode")
-    private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
-    
+
     private var galleryBackgroundMode: GalleryBackgroundMode {
-        GalleryBackgroundMode(rawValue: galleryBackgroundModeRawValue) ?? .color
+        GalleryBackgroundMode(rawValue: store.galleryBackgroundModeRawValue) ?? .color
     }
-    
+
     private var galleryBackground: some View {
         Group {
             if galleryBackgroundMode == .wallpaper,
-               let name = store.galleryWallpaperName,
-               !name.isEmpty {
-                Image(name)
+               !store.galleryWallpaperName.isEmpty {
+                Image(store.galleryWallpaperName)
                     .resizable()
                     .scaledToFill()
             } else {
-                (GalleryBackgroundColor(rawValue: galleryBackgroundColorKey) ?? .cream).color
+                (GalleryBackgroundColor(rawValue: store.galleryBackgroundColorKey) ?? .cream).color
             }
         }
     }
@@ -186,21 +203,21 @@ struct GalleryModeView: View {
     
     struct DraggableArtifactCard: View {
         @EnvironmentObject var store: MuseoStore
-        
+
         let artifact: Artifact
         let canvasScale: CGFloat
-        
+
         @GestureState private var dragOffset: CGSize = .zero
         @GestureState private var isPressing: Bool = false
         @State private var isDragging: Bool = false
-        
+
         var body: some View {
             ZStack(alignment: .topTrailing) {
                 artifactView
-                
+
                 Button {
-                    store.activeLayerArtifact = artifact
-                    store.isShowingLayersModal = true
+                    store.layerActionsArtifactID = artifact.id
+                    store.showingLayerActions = true
                 } label: {
                     Image(systemName: "rectangle.stack")
                         .font(.system(size: 12, weight: .medium))
@@ -230,7 +247,7 @@ struct GalleryModeView: View {
             .zIndex(store.zIndex(for: artifact.id) + (isDragging ? 1000 : 0))
             .gesture(longPressDragGesture)
         }
-        
+    
         private var longPressDragGesture: some Gesture {
             LongPressGesture(minimumDuration: 0.35)
                 .sequenced(before: DragGesture())
