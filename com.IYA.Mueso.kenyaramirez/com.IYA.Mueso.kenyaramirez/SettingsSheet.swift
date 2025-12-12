@@ -12,7 +12,6 @@ import SwiftUI
 
 struct SettingsSheet: View {
     @EnvironmentObject var store: MuseoStore
-    @AppStorage("museoTheme") private var museoTheme: String = MuseoTheme.light.rawValue
     @AppStorage("galleryBackgroundColorKey") private var galleryBackgroundColorKey: String = GalleryBackgroundColor.cream.rawValue
     @AppStorage("quickCaptureButtonColorKey") private var quickCaptureButtonColorKey: String = "terracotta"
     @AppStorage("galleryBackgroundMode") private var galleryBackgroundModeRawValue: String = GalleryBackgroundMode.color.rawValue
@@ -30,16 +29,6 @@ struct SettingsSheet: View {
                 Form {
                     // MARK: - Gallery Appearance
                     Section {
-                        // Theme picker
-                        Picker("Theme", selection: $museoTheme) {
-                            ForEach(MuseoTheme.allCases) { theme in
-                                Text(theme.displayName)
-                                    .font(MuseoFont.paragraph(14))
-                                    .tag(theme.rawValue)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        
                         // Wallpaper selector
                         NavigationLink {
                             WallpaperSelectorView(

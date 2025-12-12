@@ -40,6 +40,10 @@ final class MuseoStore: ObservableObject {
     // Detail state
     @Published var activeFolderDetail: Folder? = nil
     @Published var galleryWallpaperName: String? = nil
+    
+    // Layer actions modal state
+    @Published var showingLayerActions: Bool = false
+    @Published var layerActionsArtifactID: UUID? = nil
 
 
 

@@ -99,189 +99,211 @@ struct QuickCaptureSheet: View {
     
     
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                // Type tabs
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(ArtifactType.allCases) { type in
-                            Button {
-                                selectedType = type
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: type.systemImageName)
-                                    Text(type.displayName)
-                                }
-                                .font(MuseoFont.bodyTitle(14))
-                                .foregroundColor(selectedType == type ? MuseoColors.accent : MuseoColors.textPrimary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(
-                                    Capsule()
-                                        .fill(selectedType == type
-                                              ? MuseoColors.accent.opacity(0.2)
-                                              : Color.white)
-                                )
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-                
-                // Folder picker section
-                VStack(alignment: .leading, spacing: 8) {
-                    // Folder label with required indicator
-                    Text("Folder *")
-                        .font(MuseoFont.bodyTitle(16))
-                        .foregroundColor(MuseoColors.textPrimary)
-                        .padding(.horizontal, 16)
-                    
-                    // Folder picker menu
-                    Menu {
-                        ForEach(store.folders) { folder in
-                            Button(folder.name) {
-                                selectedFolder = folder
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedFolder?.name ?? "Choose folder")
-                                .font(MuseoFont.paragraph(16))
-                                .foregroundColor(selectedFolder == nil ? MuseoColors.textSecondary : MuseoColors.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(MuseoColors.textSecondary)
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                        )
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    // Create new folder button
+        ZStack {
+            // Background
+            MuseoColors.background
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Custom header
+                HStack {
                     Button {
-                        withAnimation {
-                            showNewFolderField.toggle()
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "plus.circle")
-                                .font(.system(size: 14))
-                            Text("Create new folder")
-                                .font(MuseoFont.paragraph(14))
-                        }
-                        .foregroundColor(MuseoColors.accent)
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    // New folder input field (shown when creating)
-                    if showNewFolderField {
-                        VStack(alignment: .leading, spacing: 8) {
-                            TextField("New folder name", text: $newFolderName)
-                                .font(MuseoFont.paragraph(16))
-                                .foregroundColor(MuseoColors.textPrimary)
-                                .padding(12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white)
-                                        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-                                )
-                            
-                            HStack(spacing: 12) {
-                                Button {
-                                    withAnimation {
-                                        showNewFolderField = false
-                                        newFolderName = ""
-                                    }
-                                } label: {
-                                    Text("Cancel")
-                                        .font(MuseoFont.bodyTitle(14))
-                                        .foregroundColor(MuseoColors.textPrimary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 10)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.white)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 12)
-                                                        .stroke(MuseoColors.borderMuted, lineWidth: 1)
-                                                )
-                                        )
-                                }
-                                
-                                Button {
-                                    createQuickCaptureFolder()
-                                } label: {
-                                    Text("Add folder")
-                                        .font(MuseoFont.bodyTitle(14))
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 10)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(MuseoColors.accent)
-                                        )
-                                }
-                                .disabled(newFolderName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 4)
-                    }
-                }
-                
-                // Content for the selected type
-                Group {
-                    switch selectedType {
-                    case .note:
-                        noteInputs
-                    case .image:
-                        imageInputs
-                    case .video:
-                        videoInputs
-                    case .audio:
-                        audioInputs
-                    }
-                }
-                
-                
-                Spacer()
-                
-                // Capture Idea button - disabled until folder is selected
-                Button {
-                    save()
-                } label: {
-                    Text("Capture Idea")
-                        .font(MuseoFont.bodyTitle(18))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(
-                            selectedFolder != nil
-                                ? MuseoColors.accent
-                                : MuseoColors.accent.opacity(0.4)
-                        )
-                        .cornerRadius(8)
-                }
-                .disabled(selectedFolder == nil)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
-            }
-            .padding(.top, 16)
-            .background(MuseoColors.background.ignoresSafeArea())
-            .navigationTitle("Quick Capture")
-            .font(MuseoFont.header(20))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
                         // Clean up preview player if playing
                         previewAudioPlayer?.stop()
                         previewAudioPlayer = nil
                         isPreviewPlaying = false
                         dismiss()
+                    } label: {
+                        Text("Close")
+                            .font(MuseoFont.bodyTitle(16))
+                            .foregroundColor(MuseoColors.textPrimary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("Quick Capture")
+                        .font(MuseoFont.header(24))
+                        .foregroundColor(MuseoColors.textPrimary)
+                    
+                    Spacer()
+                    
+                    // Invisible spacer to balance the Close button
+                    Text("Close")
+                        .font(MuseoFont.bodyTitle(16))
+                        .foregroundColor(.clear)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Type tabs
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(ArtifactType.allCases) { type in
+                                    Button {
+                                        selectedType = type
+                                    } label: {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: type.systemImageName)
+                                            Text(type.displayName)
+                                        }
+                                        .font(MuseoFont.bodyTitle(14))
+                                        .foregroundColor(selectedType == type ? MuseoColors.accent : MuseoColors.textPrimary)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule()
+                                                .fill(selectedType == type
+                                                      ? MuseoColors.accent.opacity(0.2)
+                                                      : Color.white)
+                                        )
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                        .padding(.top, 8)
+                
+                        // Folder picker section
+                        VStack(alignment: .leading, spacing: 8) {
+                            // Folder label with required indicator
+                            Text("Folder *")
+                                .font(MuseoFont.bodyTitle(16))
+                                .foregroundColor(MuseoColors.textPrimary)
+                                .padding(.horizontal, 24)
+                            
+                            // Folder picker menu
+                            Menu {
+                                ForEach(store.folders) { folder in
+                                    Button(folder.name) {
+                                        selectedFolder = folder
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedFolder?.name ?? "Choose folder")
+                                        .font(MuseoFont.paragraph(16))
+                                        .foregroundColor(selectedFolder == nil ? MuseoColors.textSecondary : MuseoColors.textPrimary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(MuseoColors.textSecondary)
+                                }
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white)
+                                )
+                            }
+                            .padding(.horizontal, 24)
+                    
+                            // Create new folder button
+                            Button {
+                                withAnimation {
+                                    showNewFolderField.toggle()
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus.circle")
+                                        .font(.system(size: 14))
+                                    Text("Create new folder")
+                                        .font(MuseoFont.paragraph(14))
+                                }
+                                .foregroundColor(MuseoColors.accent)
+                            }
+                            .padding(.horizontal, 24)
+                            
+                            // New folder input field (shown when creating)
+                            if showNewFolderField {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    TextField("New folder name", text: $newFolderName)
+                                        .font(MuseoFont.paragraph(16))
+                                        .foregroundColor(MuseoColors.textPrimary)
+                                        .padding(12)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.white)
+                                                .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                                        )
+                                    
+                                    HStack(spacing: 12) {
+                                        Button {
+                                            withAnimation {
+                                                showNewFolderField = false
+                                                newFolderName = ""
+                                            }
+                                        } label: {
+                                            Text("Cancel")
+                                                .font(MuseoFont.bodyTitle(14))
+                                                .foregroundColor(MuseoColors.textPrimary)
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .fill(Color.white)
+                                                        .overlay(
+                                                            RoundedRectangle(cornerRadius: 12)
+                                                                .stroke(MuseoColors.borderMuted, lineWidth: 1)
+                                                        )
+                                                )
+                                        }
+                                        
+                                        Button {
+                                            createQuickCaptureFolder()
+                                        } label: {
+                                            Text("Add folder")
+                                                .font(MuseoFont.bodyTitle(14))
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .fill(MuseoColors.accent)
+                                                )
+                                        }
+                                        .disabled(newFolderName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                    }
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.top, 4)
+                            }
+                        }
+                
+                        // Content for the selected type
+                        Group {
+                            switch selectedType {
+                            case .note:
+                                noteInputs
+                            case .image:
+                                imageInputs
+                            case .video:
+                                videoInputs
+                            case .audio:
+                                audioInputs
+                            }
+                        }
+                        
+                        // Capture Idea button - disabled until folder is selected
+                        Button {
+                            save()
+                        } label: {
+                            Text("Capture Idea")
+                                .font(MuseoFont.bodyTitle(18))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(
+                                    selectedFolder != nil
+                                        ? MuseoColors.accent
+                                        : MuseoColors.accent.opacity(0.4)
+                                )
+                                .cornerRadius(8)
+                        }
+                        .disabled(selectedFolder == nil)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+                        .padding(.bottom, 32)
                     }
                 }
             }
@@ -486,13 +508,17 @@ struct QuickCaptureSheet: View {
             // Title
             VStack(alignment: .leading, spacing: 8) {
                 Text("Title")
-                    .font(MuseoFont.paragraph(12))
-                    .foregroundColor(MuseoColors.textSecondary)
+                    .font(MuseoFont.bodyTitle(14))
+                    .foregroundColor(MuseoColors.textPrimary)
                 
                 TextField("Audio title", text: $audioTitle)
                     .font(MuseoFont.paragraph(16))
                     .foregroundColor(MuseoColors.textPrimary)
-                    .textFieldStyle(.roundedBorder)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white)
+                    )
             }
             .padding(.horizontal, 16)
             

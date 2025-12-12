@@ -14,11 +14,6 @@ struct ContentView: View {
     @AppStorage("isLoggedIn") private var isLoggedIn: Bool = false
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @AppStorage("username") private var storedUsername: String = ""
-    @AppStorage("museoTheme") private var museoTheme: String = MuseoTheme.light.rawValue
-    
-    private var currentTheme: MuseoTheme {
-        MuseoTheme(rawValue: museoTheme) ?? .light
-    }
     
     var body: some View {
         ZStack {
@@ -38,7 +33,7 @@ struct ContentView: View {
                 )
             }
         }
-        .preferredColorScheme(currentTheme == .dark ? .dark : .light)
+        .preferredColorScheme(.light)
     }
     
     private func handleOnboardingFinished(username: String) {

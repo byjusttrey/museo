@@ -19,27 +19,33 @@ struct GalleryModeView: View {
             ZStack {
                 galleryBackground
                     .ignoresSafeArea()
+                    .zIndex(0) // Background layer
                 
                 canvasLayer(in: geo.size)
+                    .zIndex(1) // Canvas layer above background
                 
-                // Center-on-content button
+                // Center-on-content button - in ZStack to ensure it's above everything
                 VStack {
                     HStack {
                         Spacer()
                         Button {
                             centerOnContent()
                         } label: {
-                            Image(systemName: "scope")
-                                .font(.system(size: 18, weight: .medium))
-                                .padding(8)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
+                            Image(systemName: "location.north.circle.fill")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(MuseoColors.accent)
+                                .frame(width: 44, height: 44)
+                                .background(MuseoColors.background)
+                                .clipShape(Circle())
+                                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         }
                         .padding(.top, 12)
                         .padding(.trailing, 12)
                     }
                     Spacer()
                 }
+                .zIndex(999998) // Very high z-index, just below Layers modal
+                .allowsHitTesting(true)
             }
             .onAppear {
                 currentScale = 1.0
@@ -61,7 +67,8 @@ struct GalleryModeView: View {
             ForEach(store.filteredArtifacts) { artifact in
                 DraggableArtifactCard(
                     artifact: artifact,
-                    canvasScale: currentScale
+                    canvasScale: currentScale,
+                    onShowLayerActions: { _ in }
                 )
             }
         }
@@ -168,11 +175,11 @@ struct GalleryModeView: View {
         
         let artifact: Artifact
         let canvasScale: CGFloat
+        let onShowLayerActions: (UUID) -> Void // Kept for compatibility but not used
         
         @GestureState private var dragOffset: CGSize = .zero
         @GestureState private var isPressing: Bool = false
         @State private var isDragging: Bool = false
-        @State private var showingLayerActions: Bool = false
         
         var body: some View {
             ZStack(alignment: .topTrailing) {
@@ -181,13 +188,16 @@ struct GalleryModeView: View {
                 
                 // Small layers button in the corner
                 Button {
-                    showingLayerActions = true
+                    store.layerActionsArtifactID = artifact.id
+                    store.showingLayerActions = true
                 } label: {
                     Image(systemName: "rectangle.stack")
                         .font(.system(size: 12, weight: .medium))
-                        .padding(6)
-                        .background(.ultraThinMaterial)
+                        .foregroundColor(MuseoColors.accent)
+                        .frame(width: 28, height: 28)
+                        .background(MuseoColors.background)
                         .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 }
                 .buttonStyle(.plain)
                 .padding(4)
@@ -211,16 +221,6 @@ struct GalleryModeView: View {
             // Tap anywhere (except the layers button) to edit
             .onTapGesture {
                 store.editingArtifact = artifact
-            }
-            // Layer actions sheet
-            .confirmationDialog("Layer actions", isPresented: $showingLayerActions, titleVisibility: .visible) {
-                Button("Bring to Front") {
-                    store.bringToFront(artifact.id)
-                }
-                Button("Send to Back") {
-                    store.sendToBack(artifact.id)
-                }
-                Button("Cancel", role: .cancel) { }
             }
         }
         
@@ -464,33 +464,4 @@ struct AudioArtifactView: View {
     }
 }
 
-// MARK: - Artifact Metadata View
 
-struct ArtifactMetadataView: View {
-    let artifact: Artifact
-    let folder: Folder?
-    
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd/yyyy"
-        return formatter.string(from: artifact.createdAt)
-    }
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            Text(formattedDate)
-                .font(MuseoFont.paragraph(11))
-                .foregroundColor(MuseoColors.textPrimary)
-            
-            if let folder = folder {
-                Text(folder.name)
-                    .font(MuseoFont.paragraph(11))
-                    .foregroundColor(folder.color.swiftUIColor)
-            } else {
-                Text("Unassigned")
-                    .font(MuseoFont.paragraph(11))
-                    .foregroundColor(MuseoColors.textPrimary)
-            }
-        }
-    }
-}
