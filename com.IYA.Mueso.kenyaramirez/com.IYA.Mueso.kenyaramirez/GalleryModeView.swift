@@ -161,41 +161,22 @@ struct GalleryModeView: View {
     
     
     // MARK: - Draggable Card (long-press + drag + layering)
-    
     struct DraggableArtifactCard: View {
         @EnvironmentObject var store: MuseoStore
-
+        
         let artifact: Artifact
         let canvasScale: CGFloat
-
+        
         @GestureState private var dragOffset: CGSize = .zero
         @GestureState private var isPressing: Bool = false
         @State private var isDragging: Bool = false
         @State private var showingLayerActions: Bool = false
-
+        
         var body: some View {
             ZStack(alignment: .topTrailing) {
                 // Main card content
                 artifactView
-                    .contentShape(Rectangle()) // tap/drag hit area = artifact container
-                    // Pickup feedback
-                    .scaleEffect(isPressing || isDragging ? 1.08 : 1.0)
-                    .shadow(
-                        color: .black.opacity(isPressing || isDragging ? 0.20 : 0.08),
-                        radius: isPressing || isDragging ? 16 : 10,
-                        y: isPressing || isDragging ? 8 : 4
-                    )
-                    .animation(
-                        .spring(response: 0.22, dampingFraction: 0.85),
-                        value: isPressing || isDragging
-                    )
-                    // TAP TO EDIT (bound to the artifact container)
-                    .onTapGesture {
-                        store.editingArtifact = artifact
-                    }
-                    // LONG PRESS + DRAG with high priority so it beats the canvas pan
-                    .highPriorityGesture(longPressDragGesture)
-
+                
                 // Small layers button in the corner
                 Button {
                     showingLayerActions = true
@@ -214,14 +195,26 @@ struct GalleryModeView: View {
                 x: artifact.x + dragOffset.width,
                 y: artifact.y + dragOffset.height
             )
-            // Layer ordering for overlap
+            // Pickup feedback
+            .scaleEffect(isPressing || isDragging ? 1.08 : 1.0)
+            .shadow(color: .black.opacity(isPressing || isDragging ? 0.20 : 0.08),
+                    radius: isPressing || isDragging ? 16 : 10,
+                    y: isPressing || isDragging ? 8 : 4)
+            .animation(.spring(response: 0.22, dampingFraction: 0.85),
+                       value: isPressing || isDragging)
+            // Layer ordering
             .zIndex(store.zIndex(for: artifact.id) + (isDragging ? 1000 : 0))
-            // Layer actions sheet
+            // Move with long-press + drag
+            .gesture(longPressDragGesture)
+            // Layer actions sheet            // Layer actions sheet + Edit option
             .confirmationDialog(
                 "Layer actions",
                 isPresented: $showingLayerActions,
                 titleVisibility: .visible
             ) {
+                Button("Edit") {
+                    store.editingArtifact = artifact
+                }
                 Button("Bring to Front") {
                     store.bringToFront(artifact.id)
                 }
@@ -231,9 +224,8 @@ struct GalleryModeView: View {
                 Button("Cancel", role: .cancel) { }
             }
         }
-
-        // MARK: - Long press + drag (no haptics)
-
+        
+        // Long-press to “pick up”, then drag to move
         private var longPressDragGesture: some Gesture {
             LongPressGesture(minimumDuration: 0.25)
                 .sequenced(before: DragGesture())
@@ -258,11 +250,7 @@ struct GalleryModeView: View {
                 }
                 .onChanged { value in
                     if case .second(true, _) = value {
-                        if !isDragging {
-                            isDragging = true
-                            // Optional: bring to front when picked up
-                            store.bringToFront(artifact.id)
-                        }
+                        if !isDragging { isDragging = true }
                     }
                 }
                 .onEnded { value in
@@ -270,23 +258,21 @@ struct GalleryModeView: View {
                         isDragging = false
                         return
                     }
-
+                    
                     let t = drag.translation
                     let scaledTranslation = CGSize(
                         width: t.width / canvasScale,
                         height: t.height / canvasScale
                     )
-
+                    
                     let newX = artifact.x + scaledTranslation.width
                     let newY = artifact.y + scaledTranslation.height
-
+                    
                     store.updatePosition(for: artifact.id, x: newX, y: newY)
                     isDragging = false
                 }
         }
-
-        // MARK: - Artifact content
-
+        
         @ViewBuilder
         private var artifactView: some View {
             let folder = store.folder(for: artifact)
@@ -302,9 +288,7 @@ struct GalleryModeView: View {
             }
         }
     }
-
-
-    }
+}
 
 
 
