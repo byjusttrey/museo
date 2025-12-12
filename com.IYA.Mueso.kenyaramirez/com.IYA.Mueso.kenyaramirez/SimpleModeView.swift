@@ -486,6 +486,36 @@ struct NewFolderSheet: View {
     }
 }
 
+// MARK: - Artifact Card View (used in Simple / Folder detail lists)
+
+struct ArtifactCardView: View {
+    let artifact: Artifact
+    let folder: Folder?
+    /// Optional external audio handler – currently unused where we pass `nil`,
+    /// but kept for API compatibility if you want list-level audio control later.
+    let playAudio: ((URL) -> Void)?
+    
+    var body: some View {
+        Group {
+            switch artifact.type {
+            case .note:
+                NoteArtifactView(artifact: artifact, folder: folder)
+                
+            case .image:
+                ImageArtifactView(artifact: artifact, folder: folder)
+                
+            case .video:
+                VideoArtifactView(artifact: artifact, folder: folder)
+                
+            case .audio:
+                // For now we ignore `playAudio` and just use the inline player.
+                AudioArtifactView(artifact: artifact, folder: folder)
+            }
+        }
+    }
+}
+
+
 // MARK: - Folder Detail Sheet
 
 struct FolderDetailSheet: View {
@@ -505,95 +535,120 @@ struct FolderDetailSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                MuseoColors.background.ignoresSafeArea()
-                
-                VStack(alignment: .leading, spacing: 16) {
-                    // MARK: Folder name
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Folder name")
-                            .font(MuseoFont.paragraph(12))
-                            .foregroundColor(MuseoColors.textSecondary)
-
-                        TextField("Name", text: $name)
-                            .font(MuseoFont.paragraph(16))
-                            .foregroundColor(MuseoColors.textPrimary)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-
-                    // MARK: Items list
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            if itemsInFolder.isEmpty {
-                                Text("No items in this folder yet.")
-                                    .font(MuseoFont.paragraph(14))
-                                    .foregroundColor(MuseoColors.textSecondary)
-                                    .padding(.top, 24)
-                            } else {
-                                ForEach(itemsInFolder) { artifact in
-                                    Button {
-                                        store.editingArtifact = artifact
-                                        dismiss()
-                                    } label: {
-                                        Group {
-                                            let folder = store.folder(for: artifact)
-                                            switch artifact.type {
-                                            case .note:
-                                                NoteArtifactView(artifact: artifact, folder: folder)
-                                            case .image:
-                                                ImageArtifactView(artifact: artifact, folder: folder)
-                                            case .video:
-                                                VideoArtifactView(artifact: artifact, folder: folder)
-                                            case .audio:
-                                                AudioArtifactView(artifact: artifact, folder: folder)
-                                            }
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                    }
-
-                    Spacer()
-
-                    // MARK: Delete folder
-                    Button(role: .destructive) {
-                        store.deleteFolder(folder)
+        ZStack {
+            MuseoColors.background.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Custom header
+                HStack {
+                    Button {
                         dismiss()
                     } label: {
-                        Text("Delete Folder")
+                        Text("Close")
                             .font(MuseoFont.bodyTitle(16))
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.red.opacity(0.05))
-                            )
+                            .foregroundColor(MuseoColors.textPrimary)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
-                }
-            }
-            .navigationTitle("Folder Details")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    
+                    Spacer()
+                    
+                    Text("Folder Details")
+                        .font(MuseoFont.header(32))
+                        .foregroundColor(MuseoColors.textPrimary)
+                    
+                    Spacer()
+                    
+                    Button {
                         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
                         if !trimmed.isEmpty {
                             store.renameFolder(folder, to: trimmed)
                         }
                         dismiss()
+                    } label: {
+                        Text("Save")
+                            .font(MuseoFont.bodyTitle(16))
+                            .foregroundColor(MuseoColors.accent)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // MARK: Folder name field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Folder name")
+                                .font(MuseoFont.bodyTitle(16))
+                                .foregroundColor(MuseoColors.textPrimary)
+                            
+                            HStack(spacing: 12) {
+                                TextField("Name", text: $name)
+                                    .font(MuseoFont.paragraph(16))
+                                    .foregroundColor(MuseoColors.textPrimary)
+                            }
+                            .padding(.vertical, 8)
+                            
+                            // Bottom border
+                            Rectangle()
+                                .fill(MuseoColors.borderMuted)
+                                .frame(height: 1)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+
+                        // MARK: Items list
+                        if itemsInFolder.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("No items in this folder yet.")
+                                    .font(MuseoFont.paragraph(14))
+                                    .foregroundColor(MuseoColors.textSecondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 24)
+                            .padding(.horizontal, 24)
+                        } else {
+                            VStack(alignment: .leading, spacing: 16) {
+                                ForEach(itemsInFolder) { artifact in
+                                    Button {
+                                        store.editingArtifact = artifact
+                                        dismiss()
+                                    } label: {
+                                        ArtifactCardView(
+                                            artifact: artifact,
+                                            folder: store.folder(for: artifact),
+                                            playAudio: nil
+                                        )
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 8)
+                        }
+                        
+                        // MARK: Delete folder button
+                        Button(role: .destructive) {
+                            store.deleteFolder(folder)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Delete Folder")
+                                    .font(MuseoFont.bodyTitle(16))
+                                    .foregroundColor(MuseoColors.accent)
+                                Spacer()
+                            }
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                            )
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        .padding(.bottom, 24)
                     }
                 }
             }

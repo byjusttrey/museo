@@ -19,34 +19,57 @@ struct GalleryModeView: View {
             ZStack {
                 galleryBackground
                     .ignoresSafeArea()
-                
+                    .zIndex(0)
+
                 canvasLayer(in: geo.size)
-                
-                // Center-on-content button
+                    .zIndex(1)
+
+                // Center-on-content button...
                 VStack {
                     HStack {
                         Spacer()
                         Button {
                             centerOnContent()
                         } label: {
-                            Image(systemName: "scope")
-                                .font(.system(size: 18, weight: .medium))
-                                .padding(8)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
+                            Image(systemName: "location.north.circle.fill")
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundColor(MuseoColors.accent)
+                                .frame(width: 44, height: 44)
+                                .background(MuseoColors.background)
+                                .clipShape(Circle())
+                                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
                         }
                         .padding(.top, 12)
                         .padding(.trailing, 12)
                     }
                     Spacer()
                 }
-                .zIndex(10_000)
-            }
-            .onAppear {
-                currentScale = 1.0
-                finalScale = 1.0
-                canvasOffset = .zero
-                lastPanOffset = .zero
+                .zIndex(2)
+
+                // Layers modal overlay
+                if let artifact = store.activeLayerArtifact, store.isShowingLayersModal {
+                    LayersModalView(
+                        isPresented: Binding(
+                            get: { store.isShowingLayersModal },
+                            set: { newValue in
+                                store.isShowingLayersModal = newValue
+                                if !newValue {
+                                    store.activeLayerArtifact = nil
+                                }
+                            }
+                        ),
+                        onEdit: {
+                            store.editingArtifact = artifact
+                        },
+                        onBringToFront: {
+                            store.bringToFront(artifact.id)
+                        },
+                        onSendToBack: {
+                            store.sendToBack(artifact.id)
+                        }
+                    )
+                    .zIndex(99999)
+                }
             }
         }
     }
@@ -159,8 +182,8 @@ struct GalleryModeView: View {
         }
     }
     
+    // MARK: - Draggable Card (long-press + drag + layering + edit via sheet)
     
-    // MARK: - Draggable Card (long-press + drag + layering)
     struct DraggableArtifactCard: View {
         @EnvironmentObject var store: MuseoStore
         
@@ -170,70 +193,50 @@ struct GalleryModeView: View {
         @GestureState private var dragOffset: CGSize = .zero
         @GestureState private var isPressing: Bool = false
         @State private var isDragging: Bool = false
-        @State private var showingLayerActions: Bool = false
         
         var body: some View {
             ZStack(alignment: .topTrailing) {
-                // Main card content
                 artifactView
                 
-                // Small layers button in the corner
                 Button {
-                    showingLayerActions = true
+                    store.activeLayerArtifact = artifact
+                    store.isShowingLayersModal = true
                 } label: {
                     Image(systemName: "rectangle.stack")
                         .font(.system(size: 12, weight: .medium))
-                        .padding(6)
-                        .background(.ultraThinMaterial)
+                        .foregroundColor(MuseoColors.accent)
+                        .frame(width: 28, height: 28)
+                        .background(MuseoColors.background)
                         .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                 }
                 .buttonStyle(.plain)
                 .padding(4)
             }
-            // Place around screen center using x/y
             .offset(
                 x: artifact.x + dragOffset.width,
                 y: artifact.y + dragOffset.height
             )
-            // Pickup feedback
             .scaleEffect(isPressing || isDragging ? 1.08 : 1.0)
-            .shadow(color: .black.opacity(isPressing || isDragging ? 0.20 : 0.08),
-                    radius: isPressing || isDragging ? 16 : 10,
-                    y: isPressing || isDragging ? 8 : 4)
-            .animation(.spring(response: 0.22, dampingFraction: 0.85),
-                       value: isPressing || isDragging)
-            // Layer ordering
+            .shadow(
+                color: .black.opacity(isPressing || isDragging ? 0.20 : 0.08),
+                radius: isPressing || isDragging ? 16 : 10,
+                y: isPressing || isDragging ? 8 : 4
+            )
+            .animation(
+                .spring(response: 0.22, dampingFraction: 0.85),
+                value: isPressing || isDragging
+            )
             .zIndex(store.zIndex(for: artifact.id) + (isDragging ? 1000 : 0))
-            // Move with long-press + drag
             .gesture(longPressDragGesture)
-            // Layer actions sheet            // Layer actions sheet + Edit option
-            .confirmationDialog(
-                "Layer actions",
-                isPresented: $showingLayerActions,
-                titleVisibility: .visible
-            ) {
-                Button("Edit") {
-                    store.editingArtifact = artifact
-                }
-                Button("Bring to Front") {
-                    store.bringToFront(artifact.id)
-                }
-                Button("Send to Back") {
-                    store.sendToBack(artifact.id)
-                }
-                Button("Cancel", role: .cancel) { }
-            }
         }
         
-        // Long-press to “pick up”, then drag to move
         private var longPressDragGesture: some Gesture {
-            LongPressGesture(minimumDuration: 0.25)
+            LongPressGesture(minimumDuration: 0.35)
                 .sequenced(before: DragGesture())
                 .updating($isPressing) { value, state, _ in
                     switch value {
-                    case .first(true):
-                        state = true
-                    case .second(true, _):
+                    case .first(true), .second(true, _):
                         state = true
                     default:
                         state = false
@@ -260,15 +263,16 @@ struct GalleryModeView: View {
                     }
                     
                     let t = drag.translation
-                    let scaledTranslation = CGSize(
+                    let scaled = CGSize(
                         width: t.width / canvasScale,
                         height: t.height / canvasScale
                     )
                     
-                    let newX = artifact.x + scaledTranslation.width
-                    let newY = artifact.y + scaledTranslation.height
-                    
-                    store.updatePosition(for: artifact.id, x: newX, y: newY)
+                    store.updatePosition(
+                        for: artifact.id,
+                        x: artifact.x + scaled.width,
+                        y: artifact.y + scaled.height
+                    )
                     isDragging = false
                 }
         }
@@ -277,21 +281,14 @@ struct GalleryModeView: View {
         private var artifactView: some View {
             let folder = store.folder(for: artifact)
             switch artifact.type {
-            case .note:
-                NoteArtifactView(artifact: artifact, folder: folder)
-            case .image:
-                ImageArtifactView(artifact: artifact, folder: folder)
-            case .video:
-                VideoArtifactView(artifact: artifact, folder: folder)
-            case .audio:
-                AudioArtifactView(artifact: artifact, folder: folder)
+            case .note:  NoteArtifactView(artifact: artifact, folder: folder)
+            case .image: ImageArtifactView(artifact: artifact, folder: folder)
+            case .video: VideoArtifactView(artifact: artifact, folder: folder)
+            case .audio: AudioArtifactView(artifact: artifact, folder: folder)
             }
         }
     }
 }
-
-
-
 
 // MARK: - Artifact Views (unchanged)
 

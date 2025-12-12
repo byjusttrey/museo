@@ -1,4 +1,4 @@
-//
+////
 //  DisplayMode.swift
 //  com.IYA.Mueso.kenyaramirez
 //
@@ -24,6 +24,10 @@ final class MuseoStore: ObservableObject {
     @Published var artifacts: [Artifact]
 
     @Published var displayMode: DisplayMode = .gallery
+    
+    @Published var activeLayerArtifact: Artifact?
+    @Published var isShowingLayersModal: Bool = false
+
 
     // Filters (simple stub for now)
     @Published var searchText: String = ""
@@ -40,6 +44,7 @@ final class MuseoStore: ObservableObject {
     // Detail state
     @Published var activeFolderDetail: Folder? = nil
     @Published var galleryWallpaperName: String? = nil
+
 
 
 
@@ -261,5 +266,3 @@ final class MuseoStore: ObservableObject {
         artifacts.insert(item, at: 0)
     }
 }
-
-

@@ -15,12 +15,7 @@ struct MuseoLogoView: View {
             Image("museo-logo")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 80, height: 80)
-            
-            // Wordmark
-            Text("museo")
-                .font(MuseoFont.header(56))
-                .foregroundColor(MuseoColors.textPrimary)
+                .frame(width: 125, height: 125)
         }
     }
 }

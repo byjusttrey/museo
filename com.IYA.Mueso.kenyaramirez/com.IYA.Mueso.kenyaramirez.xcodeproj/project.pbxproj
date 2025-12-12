@@ -62,6 +62,7 @@
 		26F21DF42EDFA51A00FDA95F /* Roboto-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21DAE2EDFA51A00FDA95F /* Roboto-ExtraBold.ttf */; };
 		26F21DF52EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D9D2EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf */; };
 		26F21DF62EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F21D962EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf */; };
+		26F227942EEBB48100FDA95F /* Italiana-Regular 2.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 26F227932EEBB48100FDA95F /* Italiana-Regular 2.ttf */; };
 		B28F20C82EDF4BAE00BB634F /* Roboto_Condensed-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B28F209C2EDF4BAE00BB634F /* Roboto_Condensed-MediumItalic.ttf */; };
 		B28F20FD2EDF4BAE00BB634F /* Roboto_SemiCondensed-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B28F20A22EDF4BAE00BB634F /* Roboto_SemiCondensed-Black.ttf */; };
 /* End PBXBuildFile section */
@@ -122,6 +123,7 @@
 		26F21DB92EDFA51A00FDA95F /* Roboto-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-SemiBold.ttf"; sourceTree = "<group>"; };
 		26F21DBB2EDFA51A00FDA95F /* Roboto-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Thin.ttf"; sourceTree = "<group>"; };
 		26F21DBC2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-ThinItalic.ttf"; sourceTree = "<group>"; };
+		26F227932EEBB48100FDA95F /* Italiana-Regular 2.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Italiana-Regular 2.ttf"; sourceTree = "<group>"; };
 		B253CD262EC41549001396C3 /* com.IYA.Mueso.kenyaramirez.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = com.IYA.Mueso.kenyaramirez.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B28F209C2EDF4BAE00BB634F /* Roboto_Condensed-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_Condensed-MediumItalic.ttf"; sourceTree = "<group>"; };
 		B28F20A22EDF4BAE00BB634F /* Roboto_SemiCondensed-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto_SemiCondensed-Black.ttf"; sourceTree = "<group>"; };
@@ -223,6 +225,7 @@
 				26F21DB92EDFA51A00FDA95F /* Roboto-SemiBold.ttf */,
 				26F21DBB2EDFA51A00FDA95F /* Roboto-Thin.ttf */,
 				26F21DBC2EDFA51A00FDA95F /* Roboto-ThinItalic.ttf */,
+				26F227932EEBB48100FDA95F /* Italiana-Regular 2.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -340,6 +343,7 @@
 				26F21DF12EDFA51A00FDA95F /* Roboto_Condensed-BlackItalic.ttf in Resources */,
 				26F21DF22EDFA51A00FDA95F /* Roboto_Condensed-LightItalic.ttf in Resources */,
 				26F21DF32EDFA51A00FDA95F /* Roboto_Condensed-ThinItalic.ttf in Resources */,
+				26F227942EEBB48100FDA95F /* Italiana-Regular 2.ttf in Resources */,
 				26F21DF42EDFA51A00FDA95F /* Roboto-ExtraBold.ttf in Resources */,
 				26F21DF52EDFA51A00FDA95F /* Roboto_SemiCondensed-ExtraBoldItalic.ttf in Resources */,
 				26F21DF62EDFA51A00FDA95F /* Roboto_Condensed-Thin.ttf in Resources */,
@@ -493,7 +497,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 6SK649BSRX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -526,7 +530,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 6SK649BSRX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
