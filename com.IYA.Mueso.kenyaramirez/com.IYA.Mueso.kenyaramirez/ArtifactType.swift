@@ -4,7 +4,7 @@
 //
 //  Created by Trey Jennings on 12/1/25.
 //
-
+// Adding artifacts
 
 // ArtifactType.swift
 
